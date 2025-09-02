@@ -1,5 +1,6 @@
 package Commuting_to_School;
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 class Original_Password {
@@ -79,7 +80,7 @@ class School_scanner implements AutoCloseable {
                 if (input_number == i) judge_scope = true;
             }
             if (!judge_scope || !(input_number < choices.length)) {//選択肢の範囲内になくて、 false のままなら、例外、また、用意していない数字も例外
-                throw new Mismatch_Select_Number_Exception("数字の範囲が違います. その値は無効です.");
+                throw new Mismatch_Select_Number_Exception("\n数字の範囲が違います. その値は無効です.");
             }
             
 
@@ -88,12 +89,15 @@ class School_scanner implements AutoCloseable {
         } catch (NumberFormatException e) {
             System.out.println(menu_start+" ~ " + menu_end + "までの数字を入れてください. その値は無効です.");
             return choices[0];//choices[0] = Zero とし、Zeroは使用しないので例外処理に使う
+        } catch (InputMismatchException e) {
+            System.out.println(menu_start+" ~ " + menu_end + "までの数字を入れてください. その値は無効です.");
+            return choices[0];//choices[0] = Zero とし、Zeroは使用しないので例外処理に使う
         }
     }
 
     @Override
     public void close() {
-        scanner.close();
+        //scanner.close();
     }
 }
 
@@ -255,18 +259,20 @@ public class Way_of_commuting {
         boolean Enter_Main_menu = false;
         do { 
             Menu_operation.Open_service();
+            School_scanner.Select_Number Enter_choice = null;
             try (School_scanner input = new School_scanner(new Scanner(System.in))) {
-                School_scanner.Select_Number Enter_choice = input.Input_Select_Number(1,5);
+                Enter_choice = input.Input_Select_Number(1,4);
                 
-                System.out.println("You select "+Enter_choice);
+                System.out.println("You select " + Enter_choice + ".");
                 /*
                  * 2025年9月3日からの作業
                  */
-
+                Enter_Main_menu = true;
             } catch (Mismatch_Select_Number_Exception e) {
-                System.out.println(e);
+                System.out.println("エラーです.\n"+e);
                 Enter_Main_menu = false;
             }
+            if (Enter_choice == School_scanner.Select_Number.Zero) Enter_Main_menu = false;
         } while (!Enter_Main_menu);
     }
 
