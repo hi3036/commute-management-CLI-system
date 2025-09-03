@@ -1,6 +1,8 @@
 package Commuting_to_School;
 
+import java.util.ArrayList;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Scanner;
 
 class Original_Password {
@@ -123,48 +125,172 @@ class Mismatch_Select_Number_Exception extends Exception {
 
 
 //---------- ---------- 通学方法 ---------- ----------
-class Vehicle {
+abstract class Vehicle {
+    private String type;
+    private int distance;
+    private int minute;
 
+    Vehicle(String type, int distance, int minute) {
+        this.type = type;
+        this.distance = distance;
+        this.minute = minute;
+    }
+
+    public String getType() { return this.type; }
+    public int distance() { return this.distance; }
+    public int getMinute() { return this.minute; }
 }
 
-class Bike {
+class Bike extends Vehicle {
+    Bike(String type, int distance, int minute) {
+        super(type, distance, minute);
+    }
+}
+
+class Bicycle extends Vehicle {
+    Bicycle(String type, int distance, int minute) {
+        super(type, distance, minute);
+    }
+}
+
+class Car extends Vehicle {
+    Car(String type, int distance, int minute) {
+        super(type, distance, minute);
+    }
+}
+
+class Train extends Vehicle {
+    Train(String type, int distance, int minute) {
+        super(type, distance, minute);
+    }
+}
+
+class Walk extends Vehicle {
+    Walk(String type, int distance, int minute) {
+        super(type, distance, minute);
+    }
+}
+
+class About extends Vehicle {
+    About(String type, int distance, int minute) {
+        super(type, distance, minute);
+    }
+}
+
+
+//---------- ---------- 学校全体の統括 ---------- ----------
+abstract class School_Member {//学校全体のメンバー
+    private String name;
+    private String position;
+    private int number;
     
+    School_Member(String name, String position) {//事務員、教員用
+        this.name = name;
+        this.position = position;
+    }
+    School_Member(String name, int number) {//生徒用
+        this.name = name;
+        this.number = number;
+    }
+
+    private List<School_Member> All_member = new ArrayList<>();//学校全体のメンバーのリスト
+
+    public void Show_MemberList() {
+        for (School_Member member : All_member) {
+            member.showValue();
+        }
+    }
+
+    public void AddMembr(School_Member member) {//メンバーの追加
+        All_member.add(member);
+    }
+
+    public void RemoveMembr(School_Member member) {//メンバーの削除
+        All_member.remove(member);
+    }
+
+    public String getName() { return this.name; }
+    public String getPosition() { return this.position; }
+    public int getNumber() { return this.number; }
+
+    abstract void showValue();
+
 }
-
-class Bicycle {
-
-}
-
-class Car {
-
-}
-
-class Train {
-
-}
-
-class Walk {
-
-}
-
-class About_way {
-
-}
-
 
 //---------- ---------- 学校関係者 ---------- ----------
-class School_office_staff {
+interface Operate_VehicleList {
+    public void AddVehicle(Vehicle vehicle);
 
+    public void RemoveVehicle(Vehicle vehicle);
+}
+class School_office_staff extends School_Member implements Operate_VehicleList {
+    private List<Vehicle> Office_staff_vehicles = new ArrayList<>();
+
+    public School_office_staff(String name, String position) {
+        super(name, position);
+    }
+
+    @Override
+    public void showValue() {
+        System.out.println("事務員 :" + getName() + " 役職:" + getPosition());
+    }
+
+    @Override
+    public void AddVehicle(Vehicle vehicle) {
+        Office_staff_vehicles.add(vehicle);
+    }
+
+    @Override
+    public void RemoveVehicle(Vehicle vehicle) {
+        Office_staff_vehicles.remove(vehicle);
+    }
 }
 
-class Student {
+class Teacher extends School_Member implements Operate_VehicleList {
+    private List<Vehicle> Teacher_vehicles = new ArrayList<>();
 
+    public Teacher(String name, String position) {
+        super(name, position);
+    }
+
+    @Override
+    public void showValue() {
+        System.out.println(" 教師 :" + getName() + " 役職:" + getPosition());
+    }
+
+    @Override
+    public void AddVehicle(Vehicle vehicle) {
+       Teacher_vehicles.add(vehicle);
+    }
+
+    @Override
+    public void RemoveVehicle(Vehicle vehicle) {
+        Teacher_vehicles.remove(vehicle);
+    }
 }
 
-class Teacher {
+class Student extends School_Member implements Operate_VehicleList {
+    private List<Vehicle> Student_vehicles = new ArrayList<>();
 
+    public Student(String name, int number) {
+        super(name, number);
+    }
+
+    @Override
+    public void showValue() {
+        System.out.println(" 生徒 :" + getName() + " 生徒番号:" + getNumber());
+    }
+
+    @Override
+    public void AddVehicle(Vehicle vehicle) {
+        Student_vehicles.add(vehicle);
+    }
+
+    @Override
+    public void RemoveVehicle(Vehicle vehicle) {
+        Student_vehicles.remove(vehicle);
+    }
 }
-
 
 //---------- ---------- メニュー画面 ---------- ----------
 class Menu_operation {
@@ -172,28 +298,25 @@ class Menu_operation {
         Start_Screen,
             Login,
                 Menu_Screen,
-                    Show_Menber,
+                    Show_Member,
                         /* メンバーの一覧を表示する処理 */
-                        Back_from_Show_Menber,//メニュー画面に戻る（表示したらまたメニューに戻るようにすれば必要ない）
+                        Back_from_Show_Member,//メニュー画面に戻る（表示したらまたメニューに戻るようにすれば必要ない）
                     
-                    Add_Remove_Menber,
-                        Add_Menber,
+                    Add_Remove_Member,
+                        Add_Member,
                             /* メンバーの追加処理 */
-                            Back_from_Add_Menber,//Add or Remove 画面に戻る、またはキャンセル
+                            Back_from_Add_Member,//Add or Remove 画面に戻る、またはキャンセル
 
-                        Remove_Menber,
-                            Back_from_Remove_Menber,
+                        Remove_Member,
+                            Back_from_Remove_Member,
 
-                        Back_from_Add_Remove_Menber,//メニュー画面に戻る
+                        Back_from_Add_Remove_Member,//メニュー画面に戻る
                     
                     Change_password,
                         Input_password,
                         Back_from_Change_password,//メニュー画面に戻る
                     
                     Logout,
-
-
-
     }
 
     static void Separate_screen() {
@@ -293,7 +416,7 @@ public class Way_of_commuting {
 
     public static void Main_menu_service() {
         boolean Enter_Main_menu = false;
-        do { 
+        do {
             Menu_operation.Menu_Screen();
             School_scanner.Select_Number Enter_choice = null;
             try (School_scanner input = new School_scanner(new Scanner(System.in))) {
