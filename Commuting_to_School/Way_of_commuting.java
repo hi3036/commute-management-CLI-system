@@ -168,25 +168,57 @@ class Teacher {
 
 //---------- ---------- メニュー画面 ---------- ----------
 class Menu_operation {
-    /*
-    private static String[] Login_TEXT = {
-        "Welcome to System of School's Commuting.",
-        "Please Password.",
-        ":",
-    };
-    */
-    
-    static void Start_screen() {
-        System.out.println("""
-            ようこそ. これは通学、通勤手段の簡易管理システムです
-            Welcome to System of School's Commuting.
-            Please Password.
-            :
-            """);
+    enum Screen_state {
+        Start_Screen,
+            Login,
+                Menu_Screen,
+                    Show_Menber,
+                        /* メンバーの一覧を表示する処理 */
+                        Back_from_Show_Menber,//メニュー画面に戻る（表示したらまたメニューに戻るようにすれば必要ない）
+                    
+                    Add_Remove_Menber,
+                        Add_Menber,
+                            /* メンバーの追加処理 */
+                            Back_from_Add_Menber,//Add or Remove 画面に戻る、またはキャンセル
+
+                        Remove_Menber,
+                            Back_from_Remove_Menber,
+
+                        Back_from_Add_Remove_Menber,//メニュー画面に戻る
+                    
+                    Change_password,
+                        Input_password,
+                        Back_from_Change_password,//メニュー画面に戻る
+                    
+                    Logout,
+
+
 
     }
 
+    static void Separate_screen() {
+        System.out.println();
+        for (int i = 0; i < 30; i++) System.out.print("-");
+        System.out.println();
+    }
+    static void Separate_screen(int count) {
+        System.out.println();
+        for (int i = 0; i < count; i++) System.out.print("-");
+        System.out.println();
+    }
+    
+    static void Start_screen() {//最初のスタート画面
+        Separate_screen();
+        System.out.print("""
+            ようこそ. これは通学、通勤手段の簡易管理システムです
+            Welcome to System of School's Commuting.
+            Please Password.
+            """);
+        System.out.print(": ");
+    }
+
     static void Logout_from_system() {
+        Separate_screen();
         System.out.println("""
             ログアウトしますか？ You will logout this system.
             Reary?[y/n]
@@ -194,9 +226,11 @@ class Menu_operation {
             """);
     }
 
-    static void Open_service() {
+    static void Menu_Screen() {//軸となるメニュー画面
+        Separate_screen();
         System.out.println("""
-                メインメニュー (Main menu) 
+                メインメニュー (Main menu)
+
                 1: 名簿表示 (Show member)
                 2: 名簿管理（追加 / 削除）(add / remove)
                 3: パスワードの変更 (Change the password)
@@ -206,8 +240,10 @@ class Menu_operation {
     }
 
     static void Human_List_service() {
+        Separate_screen();
         System.out.println("""
-                名簿 (Main menu) 
+                名簿 (Main menu)
+
                 1: メンバーおよび情報の追加
                 2: メンバーの編集
                 3: メインメニューに戻る
@@ -258,7 +294,7 @@ public class Way_of_commuting {
     public static void Main_menu_service() {
         boolean Enter_Main_menu = false;
         do { 
-            Menu_operation.Open_service();
+            Menu_operation.Menu_Screen();
             School_scanner.Select_Number Enter_choice = null;
             try (School_scanner input = new School_scanner(new Scanner(System.in))) {
                 Enter_choice = input.Input_Select_Number(1,4);
@@ -282,7 +318,7 @@ public class Way_of_commuting {
             Login_service_return = Login_service();//ログインしつつ、falseが帰ってきたら最初に戻り、trueならば終了する
         } while (!Login_service_return);
 
-        //Menu_operation.Open_service();
+        //Menu_operation.Menu_Screen();
         Main_menu_service();
         System.out.println("次回はここから！");
     }
