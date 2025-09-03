@@ -18,8 +18,22 @@ public class test {
         if (value == judge_select.middle) {
             System.out.println("middle");
         }
+
+        test_case1 test = new test_case1("神");
+        System.out.println(test);
     }
 
+}
+
+class test_case1 {
+    String message;
+    test_case1(String message) {
+        this.message = message;
+    }
+    @Override
+    public String toString() {
+        return message+" と言います！";
+    }
 }
 
 /*
