@@ -341,7 +341,7 @@ class Menu_operation {
         System.out.print(": ");
     }
 
-    static void Logout_from_system() {
+    static void Logout() {
         Separate_screen();
         System.out.println("""
             ログアウトしますか？ You will logout this system.
