@@ -223,6 +223,7 @@ interface Operate_VehicleList {
 
     public void RemoveVehicle(Vehicle vehicle);
 }
+
 class School_office_staff extends School_Member implements Operate_VehicleList {
     private List<Vehicle> Office_staff_vehicles = new ArrayList<>();
 
