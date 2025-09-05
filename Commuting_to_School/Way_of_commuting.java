@@ -35,6 +35,16 @@ class School_scanner implements AutoCloseable {
     enum Select_Number {
         Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten;
 
+        public int search_Select_Number(Select_Number Number) {//enum 列挙型のSelect_Numberを安全にint型と結び付ける
+            Select_Number box[] = Select_Number.values();
+            for (int i = 0; i < box.length; i++) {
+                if (box[i] == Number) {
+                    return i;
+                }
+            }
+            return 0;//見つからなかったら 0 を返す
+        }
+
         public void getSelect_Number(int number) {
 
         }
@@ -70,7 +80,7 @@ class School_scanner implements AutoCloseable {
         return true;
     }
 
-    public Select_Number Input_Select_Number(int menu_start, int menu_end) throws Mismatch_Select_Number_Exception{//選択肢を答える入力処理
+    public Select_Number Input_Select_Number(int menu_start, int menu_end) {//選択肢を答える入力処理
         Select_Number choices[] = Select_Number.values();
         int input_number;
 
@@ -78,28 +88,31 @@ class School_scanner implements AutoCloseable {
             input_number = scanner.nextInt();
 
             boolean judge_scope = false;
-            for (int i = menu_start; i <= menu_end; i++) {//選択肢の範囲内なら true 
+            for (int i = menu_start; i <= menu_end; i++) {//選択肢の範囲内なら true にする
                 if (input_number == i) judge_scope = true;
             }
-            if (!judge_scope || !(input_number < choices.length)) {//選択肢の範囲内になくて、 false のままなら、例外、また、用意していない数字も例外
-                throw new Mismatch_Select_Number_Exception("\n数字の範囲が違います. その値は無効です.");
+            if (judge_scope || (input_number < choices.length)) {//選択肢の範囲内で、 true なら正しい
+                
+                return choices[input_number];//正しい入力なら値を返す
+            } else {//範囲外なら例外
+                System.out.println("\n" + menu_start +" ~ " + menu_end + "までの数字を入れてください. その値は無効です.");
+                //throw new Mismatch_Select_Number_Exception(menu_start+" ~ " + menu_end + "までの数字を入れてください. その値は無効です.");
+                return choices[0];
             }
-            
 
-            return choices[input_number];//正しい入力なら値を返す
-
-        } catch (NumberFormatException e) {
-            System.out.println(menu_start+" ~ " + menu_end + "までの数字を入れてください. その値は無効です.");
-            return choices[0];//choices[0] = Zero とし、Zeroは使用しないので例外処理に使う
-        } catch (InputMismatchException e) {
-            System.out.println(menu_start+" ~ " + menu_end + "までの数字を入れてください. その値は無効です.");
+        }catch (InputMismatchException e) {
+            System.out.println("\nそれは数字ではないです. その値は無効です.");
             return choices[0];//choices[0] = Zero とし、Zeroは使用しないので例外処理に使う
         }
     }
 
     @Override
     public void close() {
-        //scanner.close();
+        /* Overrideにより処理を無くす */
+    }
+
+    public void tryClose() {
+        scanner.close();
     }
 }
 
@@ -119,6 +132,12 @@ class Mismatch_Normal_Exception extends Exception {
 
 class Mismatch_Select_Number_Exception extends Exception {
     public Mismatch_Select_Number_Exception(String message) {
+        super(message);
+    }
+}
+
+class No_result_Exception extends Exception {
+    public No_result_Exception(String message) {
         super(message);
     }
 }
@@ -294,7 +313,7 @@ class Student extends School_Member implements Operate_VehicleList {
 }
 
 //---------- ---------- メニュー画面 ---------- ----------
-class Menu_operation {
+class Service_operation {
     enum Screen_state {
         Start_Screen,
             Login,
@@ -303,12 +322,13 @@ class Menu_operation {
                         /* メンバーの一覧を表示する処理 */
                         Back_from_Show_Member,//メニュー画面に戻る（表示したらまたメニューに戻るようにすれば必要ない）
                     
-                    Add_Remove_Member,
+                    Operate_Member,
                         Add_Member,
                             /* メンバーの追加処理 */
                             Back_from_Add_Member,//Add or Remove 画面に戻る、またはキャンセル
 
                         Remove_Member,
+                            /* メンバーの削除処理 */
                             Back_from_Remove_Member,
 
                         Back_from_Add_Remove_Member,//メニュー画面に戻る
@@ -341,6 +361,10 @@ class Menu_operation {
         System.out.print(": ");
     }
 
+    static void Login() {
+
+    }
+
     static void Logout_from_system() {
         Separate_screen();
         System.out.println("""
@@ -363,7 +387,7 @@ class Menu_operation {
                 """);
     }
 
-    static void Human_List_service() {
+    static void Operate_Member() {
         Separate_screen();
         System.out.println("""
                 名簿 (Main menu)
@@ -373,78 +397,99 @@ class Menu_operation {
                 3: メインメニューに戻る
                 """);
     }
+
+    static void Logout() {
+        Separate_screen();
+        System.out.println("""
+                ログアウトしました.
+                You logged out.
+
+                """);
+    }
 }
 
 
 public class Way_of_commuting {
+    static Service_operation.Screen_state Login() {
+        try (School_scanner input = new School_scanner(new Scanner(System.in));) {
+            School_scanner.Judge_Select input_result = input.Input_password();
 
-    public static boolean Login() throws Mismatch_Normal_Exception {
-        boolean Enter = false;
-        do { 
-            try (School_scanner input = new School_scanner(new Scanner(System.in))) {
-                School_scanner.Judge_Select Enter_judge =  input.Input_password();
+            if(input_result == School_scanner.Judge_Select.True) {
+                return Service_operation.Screen_state.Menu_Screen;
+            } else if (input_result == School_scanner.Judge_Select.Cancel) {
+                return Service_operation.Screen_state.Start_Screen;//キャンセル
+            } else {//Enter_judge == School_scanner.Judge_Select.False
+                throw new Mismatch_Normal_Exception("""
 
-                if(Enter_judge == School_scanner.Judge_Select.True) {
-                    Enter = true;
-                } else if (Enter_judge == School_scanner.Judge_Select.Cancel) {
-                    return false;//キャンセル
-                } else {//Enter_judge == School_scanner.Judge_Select.False
-                    throw new Mismatch_Normal_Exception("""
-
-                        パスワード入力に失敗しました. 入力が無効です. もう一度おねがいします.
-                        ホームに戻る場合は[cancel]の入力をお願いします.
-                            """);
-                }
-            } catch (Mismatch_Normal_Exception e) {
-                System.out.println(e);
-                //e.printStackTrace();
-                Enter = false;
+                    パスワードの入力に失敗しました. 入力が無効です. もう一度おねがいします.
+                    ホームに戻る場合は[cancel]の入力をお願いします.
+                        """);
             }
-        } while (!Enter);
-        //System.out.println("Watch Enter value :"+Enter);
-        System.out.println("パスワード入力に成功しました.");
-        return true;
-    }
-
-    public static boolean Login_service() throws Mismatch_Normal_Exception {//ログイン状態ですることをまとめる
-        Menu_operation.Start_screen();
-        boolean return_Start_screen = Login();
-        if(!return_Start_screen) {//ログインせず、スタート画面にもどる処理
-            return false;
+        } catch (Mismatch_Normal_Exception e) {
+            System.out.println(e);
+            return Service_operation.Screen_state.Login;//また元の画面に移る
         }
-        return true;
     }
 
-    public static void Main_menu_service() {
-        boolean Enter_Main_menu = false;
-        do {
-            Menu_operation.Menu_Screen();
-            School_scanner.Select_Number Enter_choice = null;
-            try (School_scanner input = new School_scanner(new Scanner(System.in))) {
-                Enter_choice = input.Input_Select_Number(1,4);
-                
-                System.out.println("You select " + Enter_choice + ".");
-                /*
-                 * 2025年9月3日からの作業
-                 */
-                Enter_Main_menu = true;
-            } catch (Mismatch_Select_Number_Exception e) {
-                System.out.println("エラーです.\n"+e);
-                Enter_Main_menu = false;
+    static Service_operation.Screen_state Menu_Screen() {
+        try (School_scanner input = new School_scanner(new Scanner(System.in));) {
+            School_scanner.Select_Number input_result = input.Input_Select_Number(1,4);
+            switch (input_result) {
+                case School_scanner.Select_Number.One:
+                    return Service_operation.Screen_state.Show_Member;
+
+                case School_scanner.Select_Number.Two:
+                    return Service_operation.Screen_state.Operate_Member;
+
+                case School_scanner.Select_Number.Three:
+                    return Service_operation.Screen_state.Change_password;
+
+                case School_scanner.Select_Number.Four:
+                    return Service_operation.Screen_state.Logout;
+
+                default:
+                        throw new Mismatch_Select_Number_Exception("再度入力してください");
             }
-            if (Enter_choice == School_scanner.Select_Number.Zero) Enter_Main_menu = false;
-        } while (!Enter_Main_menu);
+        } catch (Mismatch_Select_Number_Exception e) {
+            System.out.println(e);
+            return Service_operation.Screen_state.Menu_Screen;
+        }
     }
-
-    public static void run() throws Mismatch_Normal_Exception {
-        boolean Login_service_return;
+    
+    static void run() {
+        Service_operation.Screen_state Current_Scrren_state = Service_operation.Screen_state.Start_Screen;
+        Current_Scrren_state = Service_operation.Screen_state.Menu_Screen;//テスト用
+        boolean Logout_judge = false;
         do {
-            Login_service_return = Login_service();//ログインしつつ、falseが帰ってきたら最初に戻り、trueならば終了する
-        } while (!Login_service_return);
+            switch (Current_Scrren_state) {
+                case Service_operation.Screen_state.Start_Screen://スタート画面
+                    Service_operation.Start_screen();//スタート画面を出す
+                    Current_Scrren_state = Service_operation.Screen_state.Login;
+                    break;
 
-        //Menu_operation.Menu_Screen();
-        Main_menu_service();
-        System.out.println("次回はここから！");
+                case Service_operation.Screen_state.Login://ログイン画面・パスワード入力画面
+                    Current_Scrren_state = Login();
+                    break;
+
+                case Service_operation.Screen_state.Menu_Screen://メニュー画面
+                    Service_operation.Menu_Screen();
+                    Current_Scrren_state = Menu_Screen();
+                    break;
+
+
+
+
+                case Service_operation.Screen_state.Logout://ログアウト画面
+                    Current_Scrren_state = Service_operation.Screen_state.Start_Screen;
+                    Logout_judge = true;
+                    break;
+
+                default:
+                    throw new AssertionError();
+            }
+            System.out.println(Current_Scrren_state);
+        } while (!Logout_judge);
+
     }
 
 

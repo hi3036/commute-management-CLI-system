@@ -21,6 +21,10 @@ public class test {
 
         test_case1 test = new test_case1("神");
         System.out.println(test);
+
+        School_scanner.Select_Number test_enum = School_scanner.Select_Number.Seven;
+        //int fig = test_enum.searchSelect_Number(test_enum);
+        System.out.printf("%d\n", fig);
     }
 
 }
