@@ -66,8 +66,9 @@ class SchoolScanner implements AutoCloseable {
     }
 
     public String InputChangesPasswordPossible() {
-        String newPassword = scanner.nextLine();
+        
         try {
+            String newPassword = scanner.nextLine();
             if (newPassword.equals("cancel")) {
                 return null;
             } else {
@@ -79,18 +80,29 @@ class SchoolScanner implements AutoCloseable {
         }
     }
 
-    public boolean InputYesNo() throws MismatchYesNoException{//入力の際に[y/n]を求める際の処理
-        String input_text = scanner.nextLine().toLowerCase();
-
-        if (input_text.equals("y") || input_text.equals("n") || input_text.equals("yes") || input_text.equals("no")) {
-            return true;
-        } else {
-            //return false;
-            throw new MismatchYesNoException("""
-                    [y/n]に対し、["y", "n", "yes", "no", その他これらの大文字または大文字小文字の混合]で入力をしています.その入力は無効です.
-                    再度入力をしてください.
-                    """);
+    public boolean InputYesNo() {//入力の際に[y/n]を求める際の処理
+        try {
+            String input_text = scanner.nextLine().toLowerCase();
+            if (input_text.equalsIgnoreCase("y") || input_text.equalsIgnoreCase("yes")) {
+                System.out.println("ログアウトしました.");
+                return true;
+            } else if (input_text.equalsIgnoreCase("n") || input_text.equalsIgnoreCase("no")) {
+                System.out.println("ログアウトを中止しました.");
+                return false;
+            } else {
+                throw new MismatchYesNoException("""
+                        [y/n]に対し、["y", "n", "yes", "no", その他これらの大文字または大文字小文字の混合]で入力をしています.その入力は無効です.
+                        ログアウトを中止します.
+                        """);
+            }
+        } catch (MismatchYesNoException e) {
+            System.out.println(e);
+            return false;
+        } catch (InputMismatchException e) {
+            System.out.println(e);
+            return false;
         }
+        
     }
 
     public SelectNumber InputSelectNumber(int menu_start, int menu_end) {//選択肢を答える入力処理
@@ -557,7 +569,13 @@ class Logout implements Screen {
     @Override
     public  Screen run(SchoolScanner input) {
         ShowScreen.LogoutScreen();
-        return new Start();
+        boolean LogoutConfirm = input.InputYesNo();
+        if (LogoutConfirm) {
+            return new Start();
+        } else {
+            return new Menu();
+        }
+        
     }
 }
 
