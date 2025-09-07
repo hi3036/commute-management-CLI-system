@@ -91,7 +91,7 @@ class SchoolScanner implements AutoCloseable {
                 return false;
             } else {
                 throw new MismatchYesNoException("""
-                        [y/n]に対し、["y", "n", "yes", "no", その他これらの大文字または大文字小文字の混合]で入力をしています.その入力は無効です.
+                        \n[y/n]に対し、["y", "n", "yes", "no", その他これらの大文字または大文字小文字の混合]で入力をしています.その入力は無効です.
                         ログアウトを中止します.
                         """);
             }
@@ -177,8 +177,10 @@ abstract class Vehicle {
         this.minute = minute;
     }
 
+    abstract void showVehicleValue(int blankLength);
+
     public String getType() { return this.type; }
-    public int distance() { return this.distance; }
+    public int getDistance() { return this.distance; }
     public int getMinute() { return this.minute; }
 }
 
@@ -186,11 +188,23 @@ class Bike extends Vehicle {
     Bike(String type, int distance, int minute) {
         super(type, distance, minute);
     }
+
+    @Override
+    public void showVehicleValue(int blankLength) {
+        ShowScreen.SeparateScreen(blankLength, " ");
+        System.out.println(" |: Bike    [" + getType() +"], ["+ getDistance() + "] ," + getMinute() + "分 |");
+    }
 }
 
 class Bicycle extends Vehicle {
     Bicycle(String type, int distance, int minute) {
         super(type, distance, minute);
+    }
+
+    @Override
+    public void showVehicleValue(int blankLength) {
+        ShowScreen.SeparateScreen(blankLength, " ");
+        System.out.println(" |: Bicycle [" + getType() +"], ["+ getDistance() + "] ," + getMinute() + "分 |");
     }
 }
 
@@ -198,11 +212,23 @@ class Car extends Vehicle {
     Car(String type, int distance, int minute) {
         super(type, distance, minute);
     }
+
+    @Override
+    public void showVehicleValue(int blankLength) {
+        ShowScreen.SeparateScreen(blankLength, " ");
+        System.out.println(" |: Bicycle [" + getType() +"], ["+ getDistance() + "] ," + getMinute() + "分 |");
+    }
 }
 
 class Train extends Vehicle {
     Train(String type, int distance, int minute) {
         super(type, distance, minute);
+    }
+
+    @Override
+    public void showVehicleValue(int blankLength) {
+        ShowScreen.SeparateScreen(blankLength, " ");
+        System.out.println(" |: Train   [" + getType() +"], ["+ getDistance() + "] ," + getMinute() + "分 |");
     }
 }
 
@@ -210,17 +236,29 @@ class Walk extends Vehicle {
     Walk(String type, int distance, int minute) {
         super(type, distance, minute);
     }
+
+    @Override
+    public void showVehicleValue(int blankLength) {
+        ShowScreen.SeparateScreen(blankLength, " ");
+        System.out.println(" |: Walk    [" + getType() +"], ["+ getDistance() + "] ," + getMinute() + "分 |");
+    }
 }
 
 class About extends Vehicle {
     About(String type, int distance, int minute) {
         super(type, distance, minute);
     }
+
+    @Override
+    public void showVehicleValue(int blankLength) {
+        ShowScreen.SeparateScreen(blankLength, " ");
+        System.out.println(" |: About   [" + getType() +"], ["+ getDistance() + "] ," + getMinute() + "分 |");
+    }
 }
 
 
 //---------- ---------- 学校全体の統括 ---------- ----------
-abstract class SchoolMember {//学校全体のメンバー
+abstract class SchoolMember implements OperateVehicleList {//学校全体のメンバー
     private String name;
     private String position;
     private int number;
@@ -236,13 +274,16 @@ abstract class SchoolMember {//学校全体のメンバー
 
     private static List<SchoolMember> All_member = new ArrayList<>();//学校全体のメンバーのリスト
 
-    public void Show_MemberList() {
+    public static SchoolMember getMember(int index) {
+        return All_member.get(index);
+    }
+    public static void ShowMemberList() {
         for (SchoolMember member : All_member) {
             member.showValue();
         }
     }
 
-    public void AddMembr(SchoolMember member) {//メンバーの追加
+    public static void AddMembr(SchoolMember member) {//メンバーの追加
         All_member.add(member);
     }
 
@@ -274,7 +315,15 @@ class OfficeStaff extends SchoolMember implements OperateVehicleList {
 
     @Override
     public void showValue() {
-        System.out.println("事務員 :" + getName() + " 役職:" + getPosition());
+        System.out.println("事務員: " + getName() + " | 役職: " + getPosition());
+        if (OfficeStaffVehicles.isEmpty()) {
+            System.out.println(" | No Data |");
+        } else {
+            System.out.println();
+            for (int i = 0; i < OfficeStaffVehicles.size(); i++) {
+                OfficeStaffVehicles.get(i).showVehicleValue(15);
+            }
+        }
     }
 
     @Override
@@ -297,7 +346,15 @@ class Teacher extends SchoolMember implements OperateVehicleList {
 
     @Override
     public void showValue() {
-        System.out.println(" 教師 :" + getName() + " 役職:" + getPosition());
+        System.out.print(" 教師: " + getName() + " | 役職: " + getPosition());
+        if (TeacherVehicles.isEmpty()) {
+            System.out.println(" | No Data |");
+        } else {
+            System.out.println();
+            for (int i = 0; i < TeacherVehicles.size(); i++) {
+                TeacherVehicles.get(i).showVehicleValue(15);
+            }
+        }
     }
 
     @Override
@@ -320,7 +377,15 @@ class Student extends SchoolMember implements OperateVehicleList {
 
     @Override
     public void showValue() {
-        System.out.println(" 生徒 :" + getName() + " 生徒番号 :" + getNumber());
+        System.out.println(" 生徒: " + getName() + " | 生徒番号: " + getNumber());
+        if (StudentVehicles.isEmpty()) {
+            System.out.println(" | No Data |");
+        } else {
+            System.out.println();
+            for (int i = 0; i < StudentVehicles.size(); i++) {
+                StudentVehicles.get(i).showVehicleValue(15);
+            }
+        }
     }
 
     @Override
@@ -337,19 +402,16 @@ class Student extends SchoolMember implements OperateVehicleList {
 //---------- ---------- メニュー画面 ---------- ----------
 class ShowScreen {
     static void SeparateScreen() {
-        //System.out.println();
         for (int i = 0; i < 50; i++) System.out.print("-");
         System.out.println();
     }
     static void SeparateScreen(int count) {
-        //System.out.println();
         for (int i = 0; i < count; i++) System.out.print("-");
         System.out.println();
     }
     static void SeparateScreen(int count, String separator) {
-        //System.out.println();
         for (int i = 0; i < count; i++) System.out.print(separator);
-        System.out.println();
+        //System.out.println();
     }
     
     static void StartScreen() {//最初のスタート画面
@@ -398,9 +460,18 @@ class ShowScreen {
                 名簿 (Main menu)
 
                 1: メンバーおよび情報の追加
+                2: メンバーの削除
+                3: メインメニューに戻る
+                """);
+        /*
+        System.out.println("""
+                名簿 (Main menu)
+
+                1: メンバーおよび情報の追加
                 2: メンバーの編集
                 3: メインメニューに戻る
                 """);
+        */
     }
 
     static void ChangePasswordScreen() {
@@ -442,7 +513,6 @@ class ShowScreen {
 //---------- ---------- メニュー画面 class群 ---------- ----------
 interface Screen {
     public Screen run(SchoolScanner input);
-    //Screen nextPage();
 }
 
 class Start implements Screen {
@@ -489,11 +559,11 @@ class Menu implements Screen {
         SchoolScanner.SelectNumber inputResult = input.InputSelectNumber(1, 4);
         switch (inputResult) {
             case SchoolScanner.SelectNumber.Zero:
-                return new Menu();
+                return this;
             case SchoolScanner.SelectNumber.One:
                 return new ShowMember();
             case SchoolScanner.SelectNumber.Two:
-                return new OperateMenber();
+                return new OperateMember();
             case SchoolScanner.SelectNumber.Three:
                 return new ChangePassword();
             case SchoolScanner.SelectNumber.Four:
@@ -513,10 +583,36 @@ class ShowMember implements Screen {
     }
 }
 
-class OperateMenber implements Screen {
+class OperateMember implements Screen {
     @Override
     public  Screen run(SchoolScanner input) {
         ShowScreen.OperateMemberScreen();
+        SchoolScanner.SelectNumber inputResult = input.InputSelectNumber(1, 3);
+        switch (inputResult) {
+            case SchoolScanner.SelectNumber.Zero:
+                return new Menu();
+            case SchoolScanner.SelectNumber.One:
+                return new OperateMemberAdd();
+            case SchoolScanner.SelectNumber.Two:
+                return new OperateMemberRemove();
+            case SchoolScanner.SelectNumber.Three:
+                return new Menu();
+            default:
+                return new Menu();
+        }
+    }
+}
+
+class OperateMemberAdd implements Screen {
+    @Override
+    public Screen run(SchoolScanner input) {
+        return null;
+    }
+}
+
+class OperateMemberRemove implements Screen {
+    @Override
+    public Screen run(SchoolScanner input) {
         return null;
     }
 }
@@ -591,5 +687,16 @@ public class Way_of_commuting {
     }
     public static void main(String[] args) throws MismatchNormalException {
         MainRun();
+        SchoolMember Member = new Teacher("坂本浩二", "一般教員");
+        SchoolMember.AddMembr(Member);
+        Member.AddVehicle(new Bike("日産", 40, 50));
+        Member.AddVehicle(new Bike("トヨタ", 15, 30));
+        SchoolMember Member1 = new Teacher("吉田輝元", "一般教員");
+        SchoolMember.AddMembr(Member1);
+        Member1.AddVehicle(new Bicycle("ブリヂストン", 40, 50));
+        Member1.AddVehicle(new Walk("徒歩", 3, 45));
+        SchoolMember.AddMembr(new Teacher("児玉健斗", "一般教員"));
+        SchoolMember.getMember(2).RemoveMembr(SchoolMember.getMember(1));
+        SchoolMember.ShowMemberList();
     }
 }
