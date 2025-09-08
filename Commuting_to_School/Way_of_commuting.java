@@ -278,8 +278,23 @@ abstract class SchoolMember implements OperateVehicleList {//学校全体のメ�
         return All_member.get(index);
     }
     public static void ShowMemberList() {
+        /*
         for (SchoolMember member : All_member) {
             member.showValue();
+        }
+        */
+        for (int i = 0; i < All_member.size(); i++) {
+            All_member.get(i).showValue(i);
+        }
+    }
+    public static void ShowVehicleList(List<Vehicle> MembersVehicle) {
+        if (MembersVehicle.isEmpty()) {
+            System.out.println(" | No Data |");
+        } else {
+            System.out.println();
+            for (int i = 0; i < MembersVehicle.size(); i++) {
+                MembersVehicle.get(i).showVehicleValue(15);
+            }
         }
     }
 
@@ -287,7 +302,7 @@ abstract class SchoolMember implements OperateVehicleList {//学校全体のメ�
         All_member.add(member);
     }
 
-    public void RemoveMembr(SchoolMember member) {//メンバーの削除
+    public static void RemoveMembr(SchoolMember member) {//メンバーの削除
         All_member.remove(member);
     }
 
@@ -295,7 +310,7 @@ abstract class SchoolMember implements OperateVehicleList {//学校全体のメ�
     public String getPosition() { return this.position; }
     public int getNumber() { return this.number; }
 
-    abstract void showValue();
+    abstract void showValue(int index);
 
 }
 
@@ -306,7 +321,7 @@ interface OperateVehicleList {
     public void RemoveVehicle(Vehicle vehicle);
 }
 
-class OfficeStaff extends SchoolMember implements OperateVehicleList {
+class OfficeStaff extends SchoolMember {
     private List<Vehicle> OfficeStaffVehicles = new ArrayList<>();
 
     public OfficeStaff(String name, String position) {
@@ -314,16 +329,9 @@ class OfficeStaff extends SchoolMember implements OperateVehicleList {
     }
 
     @Override
-    public void showValue() {
-        System.out.println("事務員: " + getName() + " | 役職: " + getPosition());
-        if (OfficeStaffVehicles.isEmpty()) {
-            System.out.println(" | No Data |");
-        } else {
-            System.out.println();
-            for (int i = 0; i < OfficeStaffVehicles.size(); i++) {
-                OfficeStaffVehicles.get(i).showVehicleValue(15);
-            }
-        }
+    public void showValue(int index) {
+        System.out.println(index+ " - 事務員: " + getName() + " | 役職: " + getPosition());
+        ShowVehicleList(OfficeStaffVehicles);
     }
 
     @Override
@@ -337,7 +345,7 @@ class OfficeStaff extends SchoolMember implements OperateVehicleList {
     }
 }
 
-class Teacher extends SchoolMember implements OperateVehicleList {
+class Teacher extends SchoolMember {
     private List<Vehicle> TeacherVehicles = new ArrayList<>();
 
     public Teacher(String name, String position) {
@@ -345,16 +353,9 @@ class Teacher extends SchoolMember implements OperateVehicleList {
     }
 
     @Override
-    public void showValue() {
-        System.out.print(" 教師: " + getName() + " | 役職: " + getPosition());
-        if (TeacherVehicles.isEmpty()) {
-            System.out.println(" | No Data |");
-        } else {
-            System.out.println();
-            for (int i = 0; i < TeacherVehicles.size(); i++) {
-                TeacherVehicles.get(i).showVehicleValue(15);
-            }
-        }
+    public void showValue(int index) {
+        System.out.print(index + " - 教師: " + getName() + " | 役職: " + getPosition());
+        ShowVehicleList(TeacherVehicles);
     }
 
     @Override
@@ -368,7 +369,7 @@ class Teacher extends SchoolMember implements OperateVehicleList {
     }
 }
 
-class Student extends SchoolMember implements OperateVehicleList {
+class Student extends SchoolMember {
     private List<Vehicle> StudentVehicles = new ArrayList<>();
 
     public Student(String name, int number) {
@@ -376,16 +377,9 @@ class Student extends SchoolMember implements OperateVehicleList {
     }
 
     @Override
-    public void showValue() {
-        System.out.println(" 生徒: " + getName() + " | 生徒番号: " + getNumber());
-        if (StudentVehicles.isEmpty()) {
-            System.out.println(" | No Data |");
-        } else {
-            System.out.println();
-            for (int i = 0; i < StudentVehicles.size(); i++) {
-                StudentVehicles.get(i).showVehicleValue(15);
-            }
-        }
+    public void showValue(int index) {
+        System.out.println(index + " - 生徒: " + getName() + " | 生徒番号: " + getNumber());
+        ShowVehicleList(StudentVehicles);
     }
 
     @Override
@@ -686,7 +680,7 @@ public class Way_of_commuting {
         input.tryClose();
     }
     public static void main(String[] args) throws MismatchNormalException {
-        MainRun();
+        //MainRun();
         SchoolMember Member = new Teacher("坂本浩二", "一般教員");
         SchoolMember.AddMembr(Member);
         Member.AddVehicle(new Bike("日産", 40, 50));
@@ -696,7 +690,7 @@ public class Way_of_commuting {
         Member1.AddVehicle(new Bicycle("ブリヂストン", 40, 50));
         Member1.AddVehicle(new Walk("徒歩", 3, 45));
         SchoolMember.AddMembr(new Teacher("児玉健斗", "一般教員"));
-        SchoolMember.getMember(2).RemoveMembr(SchoolMember.getMember(1));
+        SchoolMember.RemoveMembr(SchoolMember.getMember(2));
         SchoolMember.ShowMemberList();
     }
 }
