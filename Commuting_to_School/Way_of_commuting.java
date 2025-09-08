@@ -137,7 +137,7 @@ class SchoolScanner implements AutoCloseable {
         }
     }
 
-    public int InputSelectIndex(int start, int end) {
+    public int InputSelectIndex(int start, int end) {//次直す。0を認識してくれないかも...
         try {
             if (SchoolMember.getMemberSize() == 0) {
                 System.out.println("メンバーがいません.中止します.");
@@ -161,7 +161,29 @@ class SchoolScanner implements AutoCloseable {
             System.out.println("\nそれは数字ではないです. その値は無効です.");
             return -1;
         }
-        
+    }
+
+    public String InputLine() {
+        try {
+            String input_line = scanner.nextLine();
+            return input_line;
+        } catch (InputMismatchException e) {
+            System.out.println("入力ミスが発生しました.再度入力をお願いします.");
+            return null;
+        }
+    }
+
+    public int InputFigure() {
+        try {
+            int input_figure = Integer.parseInt(scanner.nextLine());
+            if (input_figure < 0) {
+                throw new MismatchNormalException("マイナスは使用不可です.");
+            }
+            return input_figure;
+        } catch (InputMismatchException | NumberFormatException | MismatchNormalException e) {
+            System.out.println("入力ミスが発生しました.再度入力をお願いします.");
+            return -1;
+        }
     }
 
     @Override
@@ -252,7 +274,7 @@ class Car extends Vehicle {
     @Override
     public void showVehicleValue(int blankLength) {
         ShowScreen.SeparateScreen(blankLength, " ");
-        System.out.println(" |: Bicycle [" + getType() +"], ["+ getDistance() + "] ," + getMinute() + "分 |");
+        System.out.println(" |: Car     [" + getType() +"], ["+ getDistance() + "] ," + getMinute() + "分 |");
     }
 }
 
@@ -397,7 +419,7 @@ class Teacher extends SchoolMember {
 
     @Override
     public void showValue(int index) {
-        System.out.print(index + " - 教師: " + getName() + " | 役職: " + getPosition());
+        System.out.println(index + " - 教師: " + getName() + " | 役職: " + getPosition());
         ShowVehicleList(TeacherVehicles);
     }
 
@@ -514,8 +536,42 @@ class ShowScreen {
     static void OperateMemberAddScreen() {
         SeparateScreen();
         System.out.println("""
-                メンバーを追加します.情報を入力してください.
+                情報を入力してください.
+
+                1: 新規で追加
+                2: 編集する
+                3: 戻る
                 """);
+    }
+
+    static void OperateMemberAddNewScreen() {
+        SeparateScreen();
+        System.out.println("""
+                誰を追加しますか？
+
+                1: 事務員
+                2: 教員
+                3: 生徒
+                """);
+    }
+
+    static void OperateMemberAddNewNameScreen() {
+        SeparateScreen();
+        System.out.println("名前を入力してください.");
+    }
+
+    static void OperateMemberAddNewPositionScreen() {
+        SeparateScreen();
+        System.out.println("役職を入力してください.");
+    }
+
+    static void OperateMemberAddNewNumberScreen() {
+        SeparateScreen();
+        System.out.println("生徒番号を入力してください.");
+    }
+
+    static void OperateMemberAddSelect() {
+
     }
 
     static void OperateMemberRemoveScreen() {
@@ -669,6 +725,111 @@ class OperateMemberAdd implements Screen {
     @Override
     public Screen run(SchoolScanner input) {
         ShowScreen.OperateMemberAddScreen();
+        SchoolScanner.SelectNumber inputResult = input.InputSelectNumber(1, 3);
+        switch (inputResult) {
+            case SchoolScanner.SelectNumber.Zero:
+                return this;
+            case SchoolScanner.SelectNumber.One:
+                return new OperateMemberAddNew();
+            case SchoolScanner.SelectNumber.Two:
+                return null;//次直す
+            case SchoolScanner.SelectNumber.Three:
+                return new OperateMember();
+            default:
+                return new OperateMember();
+        }
+    }
+}
+
+class OperateMemberAddNew implements Screen {
+    @Override
+    public Screen run(SchoolScanner input) {
+        ShowScreen.OperateMemberAddNewScreen();
+        SchoolScanner.SelectNumber inputResult = input.InputSelectNumber(1, 3);
+        switch (inputResult) {
+            case SchoolScanner.SelectNumber.Zero:
+                return this;
+            case SchoolScanner.SelectNumber.One:
+                return new OperateMemberAddNewName(SchoolScanner.SelectNumber.One);
+            case SchoolScanner.SelectNumber.Two:
+                return new OperateMemberAddNewName(SchoolScanner.SelectNumber.Two);
+            case SchoolScanner.SelectNumber.Three:
+                return new OperateMemberAddNewName(SchoolScanner.SelectNumber.Three);
+                default:
+                return this;
+        }
+    }
+}
+
+class OperateMemberAddNewName implements Screen {
+    SchoolScanner.SelectNumber kinds;
+    OperateMemberAddNewName(SchoolScanner.SelectNumber kinds) {
+        this.kinds = kinds;
+    }
+    @Override
+    public Screen run(SchoolScanner input) {
+        ShowScreen.OperateMemberAddNewNameScreen();
+        String name = input.InputLine();
+        if (name == null) {
+            return this;
+        } else {
+            return new OperateMemberAddNewPosition(kinds, name);
+        }
+    }
+}
+
+class OperateMemberAddNewPosition implements Screen {
+    SchoolScanner.SelectNumber kinds;
+    String name;
+    OperateMemberAddNewPosition(SchoolScanner.SelectNumber kinds, String name) {
+        this.kinds = kinds;
+        this.name = name;
+    }
+    
+    @Override
+    public Screen run(SchoolScanner input) {
+        SchoolMember member;
+        if (kinds == SchoolScanner.SelectNumber.One || kinds == SchoolScanner.SelectNumber.Two) {
+            ShowScreen.OperateMemberAddNewPositionScreen();
+            String position = input.InputLine();
+            member = MemberFactory(kinds, name, position);
+            SchoolMember.AddMember(member);
+            return new OperateMemberAdd();//次直す
+        } else if (kinds == SchoolScanner.SelectNumber.Three) {
+            ShowScreen.OperateMemberAddNewNumberScreen();
+            int number = input.InputFigure();
+            if (number >= 0) {
+                member = MemberFactory(kinds, name, number);
+                SchoolMember.AddMember(member);
+                return new OperateMemberAdd();//次直す
+            } else {
+                return new OperateMemberAddNewPosition(kinds, name);
+            }
+            
+        } else {
+            System.out.println("エラーです.");
+            return new OperateMemberAddNew();
+        }
+    }
+
+    public static SchoolMember MemberFactory(SchoolScanner.SelectNumber kinds, String name, String position) {
+        switch (kinds) {
+            case SchoolScanner.SelectNumber.One:
+                return new OfficeStaff(name, position);
+            case SchoolScanner.SelectNumber.Two:
+                return new Teacher(name, position);
+            default:
+                return null;
+        }
+    }
+    public static SchoolMember MemberFactory(SchoolScanner.SelectNumber kinds, String name, int number) {
+        return new Student(name, number);
+    }
+}
+
+class OperateMemberAddSelect implements Screen {
+    @Override
+    public Screen run(SchoolScanner input) {
         return null;
     }
 }
@@ -680,7 +841,7 @@ class OperateMemberRemove implements Screen {
         SchoolMember.ShowMemberList();
         ShowScreen.OperateMemberRemoveScreen();
         int inputIndex = input.InputSelectIndex(0, SchoolMember.getMemberSize());
-        if (inputIndex > 0) {
+        if (inputIndex >= 0) {
             ShowScreen.SeparateScreen();
             SchoolMember.getMember(inputIndex).showValue(inputIndex);
             return new OperateMemberRemoveConfirmation(inputIndex);
@@ -797,3 +958,4 @@ public class Way_of_commuting {
         SchoolMember.ShowMemberList();
     }
 }
+//次直す
