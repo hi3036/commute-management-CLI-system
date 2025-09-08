@@ -26,7 +26,7 @@ class OriginalPassword {
 
 class SchoolScanner implements AutoCloseable {
     enum JudgeSelect {
-        True, False, Cancel
+        True, False, Cancel;
     }
 
     enum SelectNumber {
@@ -80,19 +80,30 @@ class SchoolScanner implements AutoCloseable {
         }
     }
 
-    public boolean InputYesNo() {//入力の際に[y/n]を求める際の処理
+    enum Mode {
+        RemoveMember, Logout;
+    }
+    public boolean InputYesNo(Mode mode) {//入力の際に[y/n]を求める際の処理
         try {
             String input_text = scanner.nextLine().toLowerCase();
             if (input_text.equalsIgnoreCase("y") || input_text.equalsIgnoreCase("yes")) {
-                System.out.println("ログアウトしました.");
+                if (mode == Mode.RemoveMember) {
+                    System.out.println("削除しました.");
+                } else if (mode == Mode.Logout) {
+                    System.out.println("ログアウトしました.");
+                }
                 return true;
             } else if (input_text.equalsIgnoreCase("n") || input_text.equalsIgnoreCase("no")) {
-                System.out.println("ログアウトを中止しました.");
+                if (mode == Mode.RemoveMember) {
+                    System.out.println("削除を中止しました.");
+                } else if (mode == Mode.Logout) {
+                    System.out.println("ログアウトしました.");
+                }
                 return false;
             } else {
                 throw new MismatchYesNoException("""
-                        \n[y/n]に対し、["y", "n", "yes", "no", その他これらの大文字または大文字小文字の混合]で入力をしています.その入力は無効です.
-                        ログアウトを中止します.
+                        \n[y/n]に対し、["y", "n", "yes", "no", その他これらの大文字または大文字小文字の混合]以外で入力をしています.その入力は無効です.
+                        操作を中止します.
                         """);
             }
         } catch (MismatchYesNoException e) {
@@ -109,7 +120,6 @@ class SchoolScanner implements AutoCloseable {
         SelectNumber choices[] = SelectNumber.values();
         try {
             int input_number = Integer.parseInt(scanner.nextLine());
-
             boolean judge_scope = false;
             for (int i = menu_start; i <= menu_end; i++) {//選択肢の範囲内なら true にする
                 if (input_number == i) judge_scope = true;
@@ -121,11 +131,37 @@ class SchoolScanner implements AutoCloseable {
                 System.out.println("\n" + menu_start +" ~ " + menu_end + "までの数字を入れてください. その値は無効です.");
                 return choices[0];
             }
-
         } catch (InputMismatchException | NumberFormatException e) {
             System.out.println("\nそれは数字ではないです. その値は無効です.");
             return choices[0];//choices[0] = Zero とし、Zeroは使用しないので例外処理に使う
         }
+    }
+
+    public int InputSelectIndex(int start, int end) {
+        try {
+            if (SchoolMember.getMemberSize() == 0) {
+                System.out.println("メンバーがいません.中止します.");
+                return -2;
+            }
+            String input_line = scanner.nextLine();
+            int input_index = Integer.parseInt(input_line);
+            if (input_line.equals("cancel")) return -2;
+            boolean judge_scope = false;
+            for (int i = start; i <= end; i++) {//選択肢の範囲内なら true にする
+                if (input_index == i) judge_scope = true;
+            }
+            if (judge_scope && (input_index < SchoolMember.getMemberSize())) {//選択肢の範囲内で、 true なら正しい
+                
+                return input_index;//正しい入力なら値を返す
+            } else {//範囲外なら例外
+                System.out.println("\n" + start +" ~ " + end + "までの数字を入れてください. その値は無効です.");
+                return -1;
+            }
+        } catch (InputMismatchException | NumberFormatException e) {
+            System.out.println("\nそれは数字ではないです. その値は無効です.");
+            return -1;
+        }
+        
     }
 
     @Override
@@ -274,19 +310,26 @@ abstract class SchoolMember implements OperateVehicleList {//学校全体のメ�
 
     private static List<SchoolMember> All_member = new ArrayList<>();//学校全体のメンバーのリスト
 
+    public static List<SchoolMember> getAllMember() {
+        return All_member;
+    }
+
     public static SchoolMember getMember(int index) {
         return All_member.get(index);
     }
+    public static int getMemberSize() {
+        return All_member.size();
+    }
     public static void ShowMemberList() {
-        /*
-        for (SchoolMember member : All_member) {
-            member.showValue();
-        }
-        */
-        for (int i = 0; i < All_member.size(); i++) {
-            All_member.get(i).showValue(i);
+        if (All_member.isEmpty()) {
+            System.out.println(" | Member has not yet added. |");
+        } else {
+            for (int i = 0; i < All_member.size(); i++) {
+                All_member.get(i).showValue(i);
+            }
         }
     }
+
     public static void ShowVehicleList(List<Vehicle> MembersVehicle) {
         if (MembersVehicle.isEmpty()) {
             System.out.println(" | No Data |");
@@ -298,11 +341,11 @@ abstract class SchoolMember implements OperateVehicleList {//学校全体のメ�
         }
     }
 
-    public static void AddMembr(SchoolMember member) {//メンバーの追加
+    public static void AddMember(SchoolMember member) {//メンバーの追加
         All_member.add(member);
     }
 
-    public static void RemoveMembr(SchoolMember member) {//メンバーの削除
+    public static void RemoveMember(SchoolMember member) {//メンバーの削除
         All_member.remove(member);
     }
 
@@ -444,14 +487,14 @@ class ShowScreen {
         SeparateScreen(17);
         System.out.println("| メンバー 一覧 |");
         SeparateScreen();
-        System.out.println("名前");
+        System.out.println("番号, 名前, 情報~~~~");
         SeparateScreen();
     }
 
     static void OperateMemberScreen() {
         SeparateScreen();
         System.out.println("""
-                名簿 (Main menu)
+                名簿 (Member)
 
                 1: メンバーおよび情報の追加
                 2: メンバーの削除
@@ -466,6 +509,30 @@ class ShowScreen {
                 3: メインメニューに戻る
                 """);
         */
+    }
+
+    static void OperateMemberAddScreen() {
+        SeparateScreen();
+        System.out.println("""
+                メンバーを追加します.情報を入力してください.
+                """);
+    }
+
+    static void OperateMemberRemoveScreen() {
+        SeparateScreen();
+        System.out.println("""
+                メンバーを削除します.
+                消したいメンバーのリスト番号(Index)を入力してください.
+                戻る場合は[cancel]の入力をお願いします.
+                """);
+    }
+
+    static void OperateMemberRemoveConfirmationScreen() {
+        System.out.println();
+        System.out.println("""
+                上記のメンバーを削除します.
+                よろしいですか？ [y/n]
+                """);
     }
 
     static void ChangePasswordScreen() {
@@ -573,7 +640,8 @@ class ShowMember implements Screen {
     @Override
     public  Screen run(SchoolScanner input) {
         ShowScreen.ShowMemberScreen();
-        return null;
+        SchoolMember.ShowMemberList();
+        return new Menu();
     }
 }
 
@@ -600,6 +668,7 @@ class OperateMember implements Screen {
 class OperateMemberAdd implements Screen {
     @Override
     public Screen run(SchoolScanner input) {
+        ShowScreen.OperateMemberAddScreen();
         return null;
     }
 }
@@ -607,7 +676,41 @@ class OperateMemberAdd implements Screen {
 class OperateMemberRemove implements Screen {
     @Override
     public Screen run(SchoolScanner input) {
-        return null;
+        ShowScreen.ShowMemberScreen();
+        SchoolMember.ShowMemberList();
+        ShowScreen.OperateMemberRemoveScreen();
+        int inputIndex = input.InputSelectIndex(0, SchoolMember.getMemberSize());
+        if (inputIndex > 0) {
+            ShowScreen.SeparateScreen();
+            SchoolMember.getMember(inputIndex).showValue(inputIndex);
+            return new OperateMemberRemoveConfirmation(inputIndex);
+        } else if (inputIndex == -1) {
+            return new OperateMember();
+        } else if (inputIndex == -2) {
+            return new OperateMember();
+        } else {
+            return new OperateMember();
+        }
+    }
+}
+
+class OperateMemberRemoveConfirmation implements Screen {
+    int inputIndex;
+
+    OperateMemberRemoveConfirmation(int inputIndex) {
+        this.inputIndex = inputIndex;
+    }
+
+    @Override
+    public Screen run(SchoolScanner input) {
+        ShowScreen.OperateMemberRemoveConfirmationScreen();
+        boolean removeConfirmation = input.InputYesNo(SchoolScanner.Mode.RemoveMember);
+        if (removeConfirmation) {
+            SchoolMember.RemoveMember(SchoolMember.getMember(inputIndex));
+            return new OperateMember();
+        } else {
+            return new OperateMember();
+        }
     }
 }
 
@@ -659,7 +762,7 @@ class Logout implements Screen {
     @Override
     public  Screen run(SchoolScanner input) {
         ShowScreen.LogoutScreen();
-        boolean LogoutConfirm = input.InputYesNo();
+        boolean LogoutConfirm = input.InputYesNo(SchoolScanner.Mode.Logout);
         if (LogoutConfirm) {
             return new Start();
         } else {
@@ -680,17 +783,17 @@ public class Way_of_commuting {
         input.tryClose();
     }
     public static void main(String[] args) throws MismatchNormalException {
-        //MainRun();
+        MainRun();
         SchoolMember Member = new Teacher("坂本浩二", "一般教員");
-        SchoolMember.AddMembr(Member);
+        SchoolMember.AddMember(Member);
         Member.AddVehicle(new Bike("日産", 40, 50));
         Member.AddVehicle(new Bike("トヨタ", 15, 30));
         SchoolMember Member1 = new Teacher("吉田輝元", "一般教員");
-        SchoolMember.AddMembr(Member1);
+        SchoolMember.AddMember(Member1);
         Member1.AddVehicle(new Bicycle("ブリヂストン", 40, 50));
         Member1.AddVehicle(new Walk("徒歩", 3, 45));
-        SchoolMember.AddMembr(new Teacher("児玉健斗", "一般教員"));
-        SchoolMember.RemoveMembr(SchoolMember.getMember(2));
+        SchoolMember.AddMember(new Teacher("児玉健斗", "一般教員"));
+        SchoolMember.RemoveMember(SchoolMember.getMember(2));
         SchoolMember.ShowMemberList();
     }
 }
