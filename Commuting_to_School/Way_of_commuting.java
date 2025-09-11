@@ -9,7 +9,6 @@ class OriginalPassword {
     private static String Password = "firstPassword";
 
     public static String getPassword(String password) {
-        //System.out.println("getPasswordが呼び出された");
         if (password.equals(Password)) {
             System.out.println("パスワードが通りました.");
             return Password;
@@ -87,15 +86,6 @@ class SchoolScanner implements AutoCloseable {
         try {
             String input_text = scanner.nextLine().toLowerCase();
             if (input_text.equalsIgnoreCase("y") || input_text.equalsIgnoreCase("yes")) {
-                /*
-                if (mode == Mode.RemoveMember) {
-                    System.out.println("削除しました.");
-                } else if (mode == Mode.Logout) {
-                    System.out.println("ログアウトしました.");
-                } else if (mode == Mode.EditMember) {
-                    
-                }
-                */
                 switch (mode) {
                     case EditMember :
                         System.out.println("編集を決定しました.");
@@ -109,15 +99,6 @@ class SchoolScanner implements AutoCloseable {
                 }
                 return true;
             } else if (input_text.equalsIgnoreCase("n") || input_text.equalsIgnoreCase("no")) {
-                /*
-                if (mode == Mode.RemoveMember) {
-                    System.out.println("削除を中止しました.");
-                } else if (mode == Mode.Logout) {
-                    System.out.println("ログアウトを中止しました.");
-                } else if (mode == Mode.EditMember) {
-                    
-                }
-                */
                 switch (mode) {
                     case EditMember :
                         System.out.println("編集を決定しました.");
@@ -507,7 +488,6 @@ class ShowScreen {
     }
     static void SeparateScreen(int count, String separator) {
         for (int i = 0; i < count; i++) System.out.print(separator);
-        //System.out.println();
     }
     
     static void StartScreen() {//最初のスタート画面
@@ -559,15 +539,6 @@ class ShowScreen {
                 2: メンバーの削除
                 3: メインメニューに戻る
                 """);
-        /*
-        System.out.println("""
-                名簿 (Main menu)
-
-                1: メンバーおよび情報の追加
-                2: メンバーの編集
-                3: メインメニューに戻る
-                """);
-        */
     }
 
     static void OperateMemberAddScreen() {
@@ -745,7 +716,6 @@ class Menu implements Screen {
     }
 }
 
-
 class ShowMember implements Screen {
     @Override
     public  Screen run(SchoolScanner input) {
@@ -912,7 +882,6 @@ class OperateMemberAddPositionOrNumber implements Screen {
                     ShowScreen.OperateMemberAddPositionScreen();
                     String position = input.InputLine();
                     member = MemberFactory(kinds, name, position);
-                    //SchoolMember.getMember(index) = member;
                     SchoolMember.setMember(index, member);
                     return new OperateMemberAdd();
                 case Student:
@@ -920,7 +889,6 @@ class OperateMemberAddPositionOrNumber implements Screen {
                     int number = input.InputFigure();
                     if (number >= 0) {
                         member = MemberFactory(kinds, name, number);
-                        //SchoolMember.AddMember(member);
                         SchoolMember.setMember(index, member);
                         return new OperateMemberAdd();//次直す
                     } else {
@@ -995,7 +963,6 @@ class OperateMemberEditConfirmation implements Screen {
         ShowScreen.OperateMemberEditConfirmationScreen();
         boolean editConfirmation = input.InputYesNo(SchoolScanner.Mode.EditMember);
         if (editConfirmation) {
-            //SchoolMember.RemoveMember(SchoolMember.getMember(index));
             return new OperateMemberAddWho(index);
         } else {
             return new OperateMemberEditSelect();
@@ -1117,43 +1084,5 @@ public class Way_of_commuting {
     }
     public static void main(String[] args) throws MismatchNormalException {
         MainRun();
-        /*
-        SchoolMember Member = new Teacher("坂本浩二", "一般教員");
-        SchoolMember.AddMember(Member);
-        Member.AddVehicle(new Bike("日産", 40, 50));
-        Member.AddVehicle(new Bike("トヨタ", 15, 30));
-        SchoolMember Member1 = new Teacher("吉田輝元", "一般教員");
-        SchoolMember.AddMember(Member1);
-        Member1.AddVehicle(new Bicycle("ブリヂストン", 40, 50));
-        Member1.AddVehicle(new Walk("徒歩", 3, 45));
-        SchoolMember.AddMember(new Teacher("児玉健斗", "一般教員"));
-        SchoolMember.RemoveMember(SchoolMember.getMember(2));
-        SchoolMember.ShowMemberList();
-        */
     }
 }
-//次直す
-        
-/*
-        if (kinds == SchoolMember.Member.OfficeStaff || kinds == SchoolMember.Member.Teacher) {
-            ShowScreen.OperateMemberAddNewPositionScreen();
-            String position = input.InputLine();
-            member = MemberFactory(kinds, name, position);
-            SchoolMember.AddMember(member);
-            return new OperateMemberAdd();//次直す
-        } else if (kinds == SchoolMember.Member.Student) {
-            ShowScreen.OperateMemberAddNewNumberScreen();
-            int number = input.InputFigure();
-            if (number >= 0) {
-                member = MemberFactory(kinds, name, number);
-                SchoolMember.AddMember(member);
-                return new OperateMemberAdd();//次直す
-            } else {
-                return new OperateMemberAddNewPosition(kinds, name);//再度繰り返す
-            }
-            
-        } else {
-            System.out.println("エラーです.");
-            return new OperateMemberAddNew();
-        }
-        */
