@@ -81,23 +81,53 @@ class SchoolScanner implements AutoCloseable {
     }
 
     enum Mode {
-        RemoveMember, Logout;
+        EditMember, RemoveMember, Logout;
     }
     public boolean InputYesNo(Mode mode) {//入力の際に[y/n]を求める際の処理
         try {
             String input_text = scanner.nextLine().toLowerCase();
             if (input_text.equalsIgnoreCase("y") || input_text.equalsIgnoreCase("yes")) {
+                /*
                 if (mode == Mode.RemoveMember) {
                     System.out.println("削除しました.");
                 } else if (mode == Mode.Logout) {
                     System.out.println("ログアウトしました.");
+                } else if (mode == Mode.EditMember) {
+                    
+                }
+                */
+                switch (mode) {
+                    case EditMember :
+                        System.out.println("編集を決定しました.");
+                        break;
+                    case RemoveMember :
+                        System.out.println("削除しました.");
+                        break;
+                    case Logout :
+                        System.out.println("ログアウトしました.");
+                        break;
                 }
                 return true;
             } else if (input_text.equalsIgnoreCase("n") || input_text.equalsIgnoreCase("no")) {
+                /*
                 if (mode == Mode.RemoveMember) {
                     System.out.println("削除を中止しました.");
                 } else if (mode == Mode.Logout) {
-                    System.out.println("ログアウトしました.");
+                    System.out.println("ログアウトを中止しました.");
+                } else if (mode == Mode.EditMember) {
+                    
+                }
+                */
+                switch (mode) {
+                    case EditMember :
+                        System.out.println("編集を決定しました.");
+                        break;
+                    case RemoveMember :
+                        System.out.println("削除を中止しました.");
+                        break;
+                    case Logout :
+                        System.out.println("ログアウトを中止しました.");
+                        break;
                 }
                 return false;
             } else {
@@ -110,7 +140,6 @@ class SchoolScanner implements AutoCloseable {
             System.out.println(e);
             return false;
         }
-        
     }
 
     public SelectNumber InputSelectNumber(int menu_start, int menu_end) {//選択肢を答える入力処理
@@ -321,6 +350,10 @@ abstract class SchoolMember implements OperateVehicleList {//学校全体のメ�
     enum Member {
         OfficeStaff, Teacher, Student;
     }
+
+    enum AddMember {
+        New, Existing;
+    }
     
     SchoolMember(String name, String position) {//事務員、教員用
         this.name = name;
@@ -339,6 +372,9 @@ abstract class SchoolMember implements OperateVehicleList {//学校全体のメ�
 
     public static SchoolMember getMember(int index) {
         return All_member.get(index);
+    }
+    public static void setMember(int index, SchoolMember member) {//値の置き換え
+        All_member.set(index, member);
     }
     public static int getMemberSize() {
         return All_member.size();
@@ -545,7 +581,7 @@ class ShowScreen {
                 """);
     }
 
-    static void OperateMemberAddNewScreen() {
+    static void OperateMemberAddWhoScreen() {
         SeparateScreen();
         System.out.println("""
                 誰を追加しますか？
@@ -556,23 +592,36 @@ class ShowScreen {
                 """);
     }
 
-    static void OperateMemberAddNewNameScreen() {
+    static void OperateMemberAddNameScreen() {
         SeparateScreen();
         System.out.println("名前を入力してください.");
     }
 
-    static void OperateMemberAddNewPositionScreen() {
+    static void OperateMemberAddPositionScreen() {
         SeparateScreen();
         System.out.println("役職を入力してください.");
     }
 
-    static void OperateMemberAddNewNumberScreen() {
+    static void OperateMemberAddNumberScreen() {
         SeparateScreen();
         System.out.println("生徒番号を入力してください.");
     }
 
-    static void OperateMemberAddSelect() {
+    static void OperateMemberEditSelectScreen() {
+        SeparateScreen();
+        System.out.println("""
+                メンバーを編集します.
+                編集したいメンバーのリスト番号(Index)を入力してください.
+                戻る場合は[cancel]の入力をお願いします.
+                """);
+    }
 
+    static void OperateMemberEditConfirmationScreen() {
+        System.out.println();
+        System.out.println("""
+                上記のメンバーを編集します.
+                よろしいですか？ [y/n]
+                """);
     }
 
     static void OperateMemberRemoveScreen() {
@@ -625,6 +674,10 @@ class ShowScreen {
                 You logged out.
 
                 """);
+    }
+
+    static void Error() {
+        System.out.println("エラーです.");
     }
 }
 
@@ -721,7 +774,7 @@ class OperateMember implements Screen {
         }
     }
 }
-
+//---------- ---------- メンバー追加処理 ---------- ----------
 class OperateMemberAdd implements Screen {
     @Override
     public Screen run(SchoolScanner input) {
@@ -731,9 +784,9 @@ class OperateMemberAdd implements Screen {
             case Zero:
                 return this;
             case One:
-                return new OperateMemberAddNew();
+                return new OperateMemberAddWho();//新規用
             case Two:
-                return null;//次直す
+                return new OperateMemberEditSelect();//編集用
             case Three:
                 return new OperateMember();
             default:
@@ -742,47 +795,86 @@ class OperateMemberAdd implements Screen {
     }
 }
 
-class OperateMemberAddNew implements Screen {
+class OperateMemberAddWho implements Screen {//事務員・教員・生徒から選択
+    int index = -1;
+    OperateMemberAddWho() {}//新規用
+    OperateMemberAddWho(int index) {//編集用
+        this.index = index;
+    }
     @Override
     public Screen run(SchoolScanner input) {
-        ShowScreen.OperateMemberAddNewScreen();
+        ShowScreen.OperateMemberAddWhoScreen();
         SchoolScanner.SelectNumber inputResult = input.InputSelectNumber(1, 3);
-        switch (inputResult) {
-            case Zero:
-                return this;
-            case One:
-                return new OperateMemberAddNewName(SchoolMember.Member.OfficeStaff);
-            case Two:
-                return new OperateMemberAddNewName(SchoolMember.Member.Teacher);
-            case Three:
-                return new OperateMemberAddNewName(SchoolMember.Member.Student);
+        if (index == -1) {//このとき、新規追加の場合
+            switch (inputResult) {
+                case Zero:
+                    return this;
+                case One:
+                    return new OperateMemberAddName(SchoolMember.Member.OfficeStaff);
+                case Two:
+                    return new OperateMemberAddName(SchoolMember.Member.Teacher);
+                case Three:
+                    return new OperateMemberAddName(SchoolMember.Member.Student);
                 default:
-                return this;
+                    return this;
+            }
+        } else {//このとき、編集の場合
+            switch (inputResult) {
+                case Zero:
+                    return this;
+                case One:
+                    return new OperateMemberAddName(index, SchoolMember.Member.OfficeStaff);
+                case Two:
+                    return new OperateMemberAddName(index, SchoolMember.Member.Teacher);
+                case Three:
+                    return new OperateMemberAddName(index, SchoolMember.Member.Student);
+                default:
+                    return this;
+            }
         }
     }
 }
 
-class OperateMemberAddNewName implements Screen {
+class OperateMemberAddName implements Screen {
+    int index = -1;
     SchoolMember.Member kinds;
-    OperateMemberAddNewName(SchoolMember.Member kinds) {
+    OperateMemberAddName(SchoolMember.Member kinds) {//新規用
+        this.kinds = kinds;
+    }
+    OperateMemberAddName(int index, SchoolMember.Member kinds) {//編集用
+        this.index = index;
         this.kinds = kinds;
     }
     @Override
     public Screen run(SchoolScanner input) {
-        ShowScreen.OperateMemberAddNewNameScreen();
+        ShowScreen.OperateMemberAddNameScreen();
         String name = input.InputLine();
-        if (name == null) {
-            return this;
-        } else {
-            return new OperateMemberAddNewPosition(kinds, name);
+        if (index == -1) {//新規の場合
+            if (name == null) {
+                return this;
+            } else {
+                return new OperateMemberAddPositionOrNumber(kinds, name);
+            }
+        } else {//編集の場合
+            if (name == null) {
+                return this;
+            } else {
+                return new OperateMemberAddPositionOrNumber(index, kinds, name);
+            }
         }
     }
 }
 
-class OperateMemberAddNewPosition implements Screen {
+class OperateMemberAddPositionOrNumber implements Screen {
+    int index = -1;
     SchoolMember.Member kinds;
     String name;
-    OperateMemberAddNewPosition(SchoolMember.Member kinds, String name) {
+    OperateMemberAddPositionOrNumber(SchoolMember.Member kinds, String name) {
+        this.kinds = kinds;
+        this.name = name;
+    }
+    OperateMemberAddPositionOrNumber(int index, SchoolMember.Member kinds, String name) {
+        this.index = index;
         this.kinds = kinds;
         this.name = name;
     }
@@ -790,31 +882,58 @@ class OperateMemberAddNewPosition implements Screen {
     @Override
     public Screen run(SchoolScanner input) {
         SchoolMember member;
-        switch (kinds) {
-            case OfficeStaff:
-            case Teacher:
-                ShowScreen.OperateMemberAddNewPositionScreen();
-                String position = input.InputLine();
-                member = MemberFactory(kinds, name, position);
-                SchoolMember.AddMember(member);
-                return new OperateMemberAdd();
-            case Student:
-                ShowScreen.OperateMemberAddNewNumberScreen();
-                int number = input.InputFigure();
-                if (number >= 0) {
-                    member = MemberFactory(kinds, name, number);
+        if (index == -1) {//新規用
+            switch (kinds) {
+                case OfficeStaff:
+                case Teacher:
+                    ShowScreen.OperateMemberAddPositionScreen();
+                    String position = input.InputLine();
+                    member = MemberFactory(kinds, name, position);
                     SchoolMember.AddMember(member);
-                    return new OperateMemberAdd();//次直す
-                } else {
-                    return new OperateMemberAddNewPosition(kinds, name);//再度繰り返す
-                }
-            default:
-                System.out.println("エラーです.");
-                return new OperateMemberAddNew();
+                    return new OperateMemberAdd();
+                case Student:
+                    ShowScreen.OperateMemberAddNumberScreen();
+                    int number = input.InputFigure();
+                    if (number >= 0) {
+                        member = MemberFactory(kinds, name, number);
+                        SchoolMember.AddMember(member);
+                        return new OperateMemberAdd();//次直す
+                    } else {
+                        return new OperateMemberAddPositionOrNumber(kinds, name);//再度繰り返す
+                    }
+                default:
+                    ShowScreen.Error();
+                    return new OperateMemberAddWho();
+            }
+        } else {//編集用
+            switch (kinds) {
+                case OfficeStaff:
+                case Teacher:
+                    ShowScreen.OperateMemberAddPositionScreen();
+                    String position = input.InputLine();
+                    member = MemberFactory(kinds, name, position);
+                    //SchoolMember.getMember(index) = member;
+                    SchoolMember.setMember(index, member);
+                    return new OperateMemberAdd();
+                case Student:
+                    ShowScreen.OperateMemberAddNumberScreen();
+                    int number = input.InputFigure();
+                    if (number >= 0) {
+                        member = MemberFactory(kinds, name, number);
+                        //SchoolMember.AddMember(member);
+                        SchoolMember.setMember(index, member);
+                        return new OperateMemberAdd();//次直す
+                    } else {
+                        return new OperateMemberAddPositionOrNumber(kinds, name);//再度繰り返す
+                    }
+                default:
+                    ShowScreen.Error();
+                    return new OperateMemberAddWho();
+            }
         }
     }
 
-    public static SchoolMember MemberFactory(SchoolMember.Member kinds, String name, String position) {
+    public static SchoolMember MemberFactory(SchoolMember.Member kinds, String name, String position) {//新規用
         switch (kinds) {
             case OfficeStaff:
                 return new OfficeStaff(name, position);
@@ -824,18 +943,67 @@ class OperateMemberAddNewPosition implements Screen {
                 return null;
         }
     }
-    public static SchoolMember MemberFactory(SchoolMember.Member kinds, String name, int number) {
+    public static SchoolMember MemberFactory(SchoolMember.Member kinds, String name, int number) {//新規用
+        return new Student(name, number);
+    }
+
+    public static SchoolMember MemberFactory(int index, SchoolMember.Member kinds, String name, String position) {//編集用
+        switch (kinds) {
+            case OfficeStaff:
+                return new OfficeStaff(name, position);
+            case Teacher:
+                return new Teacher(name, position);
+            default:
+                return null;
+        }
+    }
+    public static SchoolMember MemberFactory(int index, SchoolMember.Member kinds, String name, int number) {//編集用
         return new Student(name, number);
     }
 }
 
-class OperateMemberAddExisting implements Screen {
+//---------- ---------- メンバー編集処理 ---------- ----------
+class OperateMemberEditSelect implements Screen {//Removeの際と同じように、編集したいindexを取得.
     @Override
     public Screen run(SchoolScanner input) {
-        return null;
+        ShowScreen.ShowMemberScreen();
+        SchoolMember.ShowMemberList();
+        ShowScreen.OperateMemberEditSelectScreen();
+        int inputIndex = input.InputSelectIndex(1, SchoolMember.getMemberSize() +1);//SchoolMember.getMemberSize() +1 としているのは、見掛け上のindexを1始まりにするため
+        if (inputIndex -1 >= 0) {//入力が正しい場合
+            inputIndex--;//All_memberのindex参照を0からではなく1からにしたいため、1を引く;
+            ShowScreen.SeparateScreen();
+            SchoolMember.getMember(inputIndex).showValue(inputIndex +1);
+            return new OperateMemberEditConfirmation(inputIndex);
+        } else if (inputIndex == -1) {//入力が間違っている場合
+            return this;
+        } else if (inputIndex == -2) {//cancelの場合
+            return new OperateMemberAdd();
+        } else {
+            return new OperateMemberAdd();
+        }
     }
 }
 
+class OperateMemberEditConfirmation implements Screen {
+    int index;
+    OperateMemberEditConfirmation(int index) {
+        this.index = index;
+    }
+    @Override
+    public Screen run(SchoolScanner input) {
+        ShowScreen.OperateMemberEditConfirmationScreen();
+        boolean editConfirmation = input.InputYesNo(SchoolScanner.Mode.EditMember);
+        if (editConfirmation) {
+            //SchoolMember.RemoveMember(SchoolMember.getMember(index));
+            return new OperateMemberAddWho(index);
+        } else {
+            return new OperateMemberEditSelect();
+        }
+    }
+}
+
+//---------- ---------- メンバー削除処理 ---------- ----------
 class OperateMemberRemove implements Screen {
     @Override
     public Screen run(SchoolScanner input) {
@@ -843,17 +1011,17 @@ class OperateMemberRemove implements Screen {
         SchoolMember.ShowMemberList();
         ShowScreen.OperateMemberRemoveScreen();
         int inputIndex = input.InputSelectIndex(1, SchoolMember.getMemberSize() +1);//SchoolMember.getMemberSize() +1 としているのは、見掛け上のindexを1始まりにするため
-        if (inputIndex -1 >= 0) {
-            inputIndex--;//All_memberのindex参照を0からではなく1空にしたいため、1を引く;
+        if (inputIndex -1 >= 0) {//入力が正しい場合
+            inputIndex--;//All_memberのindex参照を0からではなく1からにしたいため、1を引く;
             ShowScreen.SeparateScreen();
             SchoolMember.getMember(inputIndex).showValue(inputIndex +1);
             return new OperateMemberRemoveConfirmation(inputIndex);
-        } else if (inputIndex == -1) {
-            return new OperateMember();
-        } else if (inputIndex == -2) {
-            return new OperateMember();
+        } else if (inputIndex == -1) {//入力が間違っている場合
+            return this;
+        } else if (inputIndex == -2) {//cancelの場合
+            return new OperateMemberAdd();
         } else {
-            return new OperateMember();
+            return new OperateMemberAdd();
         }
     }
 }
@@ -878,6 +1046,7 @@ class OperateMemberRemoveConfirmation implements Screen {
     }
 }
 
+//---------- ---------- パスワード変更処理 ---------- ----------
 class ChangePassword implements Screen {
     @Override
     public  Screen run(SchoolScanner input) {
