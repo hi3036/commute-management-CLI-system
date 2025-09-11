@@ -81,23 +81,53 @@ class SchoolScanner implements AutoCloseable {
     }
 
     enum Mode {
-        RemoveMember, Logout;
+        EditMember, RemoveMember, Logout;
     }
     public boolean InputYesNo(Mode mode) {//入力の際に[y/n]を求める際の処理
         try {
             String input_text = scanner.nextLine().toLowerCase();
             if (input_text.equalsIgnoreCase("y") || input_text.equalsIgnoreCase("yes")) {
+                /*
                 if (mode == Mode.RemoveMember) {
                     System.out.println("削除しました.");
                 } else if (mode == Mode.Logout) {
                     System.out.println("ログアウトしました.");
+                } else if (mode == Mode.EditMember) {
+                    
+                }
+                */
+                switch (mode) {
+                    case EditMember :
+                        System.out.println("編集を決定しました.");
+                        break;
+                    case RemoveMember :
+                        System.out.println("削除しました.");
+                        break;
+                    case Logout :
+                        System.out.println("ログアウトしました.");
+                        break;
                 }
                 return true;
             } else if (input_text.equalsIgnoreCase("n") || input_text.equalsIgnoreCase("no")) {
+                /*
                 if (mode == Mode.RemoveMember) {
                     System.out.println("削除を中止しました.");
                 } else if (mode == Mode.Logout) {
-                    System.out.println("ログアウトしました.");
+                    System.out.println("ログアウトを中止しました.");
+                } else if (mode == Mode.EditMember) {
+                    
+                }
+                */
+                switch (mode) {
+                    case EditMember :
+                        System.out.println("編集を決定しました.");
+                        break;
+                    case RemoveMember :
+                        System.out.println("削除を中止しました.");
+                        break;
+                    case Logout :
+                        System.out.println("ログアウトを中止しました.");
+                        break;
                 }
                 return false;
             } else {
@@ -110,7 +140,6 @@ class SchoolScanner implements AutoCloseable {
             System.out.println(e);
             return false;
         }
-        
     }
 
     public SelectNumber InputSelectNumber(int menu_start, int menu_end) {//選択肢を答える入力処理
@@ -587,6 +616,14 @@ class ShowScreen {
                 """);
     }
 
+    static void OperateMemberEditConfirmationScreen() {
+        System.out.println();
+        System.out.println("""
+                上記のメンバーを編集します.
+                よろしいですか？ [y/n]
+                """);
+    }
+
     static void OperateMemberRemoveScreen() {
         SeparateScreen();
         System.out.println("""
@@ -747,9 +784,9 @@ class OperateMemberAdd implements Screen {
             case Zero:
                 return this;
             case One:
-                return new OperateMemberAddWho();//新規で追加
+                return new OperateMemberAddWho();//新規用
             case Two:
-                return new OperateMemberEditSelect();//編集
+                return new OperateMemberEditSelect();//編集用
             case Three:
                 return new OperateMember();
             default:
@@ -778,7 +815,7 @@ class OperateMemberAddWho implements Screen {//事務員・教員・生徒から
                     return new OperateMemberAddName(SchoolMember.Member.Teacher);
                 case Three:
                     return new OperateMemberAddName(SchoolMember.Member.Student);
-                    default:
+                default:
                     return this;
             }
         } else {//このとき、編集の場合
@@ -786,12 +823,12 @@ class OperateMemberAddWho implements Screen {//事務員・教員・生徒から
                 case Zero:
                     return this;
                 case One:
-                    return new OperateMemberAddName(int index, SchoolMember.Member.OfficeStaff);
+                    return new OperateMemberAddName(index, SchoolMember.Member.OfficeStaff);
                 case Two:
-                    return new OperateMemberAddName(int index, SchoolMember.Member.Teacher);
+                    return new OperateMemberAddName(index, SchoolMember.Member.Teacher);
                 case Three:
-                    return new OperateMemberAddName(int index, SchoolMember.Member.Student);
-                    default:
+                    return new OperateMemberAddName(index, SchoolMember.Member.Student);
+                default:
                     return this;
             }
         }
@@ -825,7 +862,6 @@ class OperateMemberAddName implements Screen {
                 return new OperateMemberAddPositionOrNumber(index, kinds, name);
             }
         }
-        
     }
 }
 
@@ -895,8 +931,6 @@ class OperateMemberAddPositionOrNumber implements Screen {
                     return new OperateMemberAddWho();
             }
         }
-        
-        
     }
 
     public static SchoolMember MemberFactory(SchoolMember.Member kinds, String name, String position) {//新規用
@@ -936,14 +970,14 @@ class OperateMemberEditSelect implements Screen {//Removeの際と同じよう�
         SchoolMember.ShowMemberList();
         ShowScreen.OperateMemberEditSelectScreen();
         int inputIndex = input.InputSelectIndex(1, SchoolMember.getMemberSize() +1);//SchoolMember.getMemberSize() +1 としているのは、見掛け上のindexを1始まりにするため
-        if (inputIndex -1 >= 0) {
+        if (inputIndex -1 >= 0) {//入力が正しい場合
             inputIndex--;//All_memberのindex参照を0からではなく1からにしたいため、1を引く;
             ShowScreen.SeparateScreen();
             SchoolMember.getMember(inputIndex).showValue(inputIndex +1);
             return new OperateMemberEditConfirmation(inputIndex);
-        } else if (inputIndex == -1) {
+        } else if (inputIndex == -1) {//入力が間違っている場合
             return this;
-        } else if (inputIndex == -2) {
+        } else if (inputIndex == -2) {//cancelの場合
             return new OperateMemberAdd();
         } else {
             return new OperateMemberAdd();
@@ -958,7 +992,14 @@ class OperateMemberEditConfirmation implements Screen {
     }
     @Override
     public Screen run(SchoolScanner input) {
-
+        ShowScreen.OperateMemberEditConfirmationScreen();
+        boolean editConfirmation = input.InputYesNo(SchoolScanner.Mode.EditMember);
+        if (editConfirmation) {
+            //SchoolMember.RemoveMember(SchoolMember.getMember(index));
+            return new OperateMemberAddWho(index);
+        } else {
+            return new OperateMemberEditSelect();
+        }
     }
 }
 
@@ -970,14 +1011,14 @@ class OperateMemberRemove implements Screen {
         SchoolMember.ShowMemberList();
         ShowScreen.OperateMemberRemoveScreen();
         int inputIndex = input.InputSelectIndex(1, SchoolMember.getMemberSize() +1);//SchoolMember.getMemberSize() +1 としているのは、見掛け上のindexを1始まりにするため
-        if (inputIndex -1 >= 0) {
+        if (inputIndex -1 >= 0) {//入力が正しい場合
             inputIndex--;//All_memberのindex参照を0からではなく1からにしたいため、1を引く;
             ShowScreen.SeparateScreen();
             SchoolMember.getMember(inputIndex).showValue(inputIndex +1);
             return new OperateMemberRemoveConfirmation(inputIndex);
-        } else if (inputIndex == -1) {
+        } else if (inputIndex == -1) {//入力が間違っている場合
             return this;
-        } else if (inputIndex == -2) {
+        } else if (inputIndex == -2) {//cancelの場合
             return new OperateMemberAdd();
         } else {
             return new OperateMemberAdd();
@@ -1005,6 +1046,7 @@ class OperateMemberRemoveConfirmation implements Screen {
     }
 }
 
+//---------- ---------- パスワード変更処理 ---------- ----------
 class ChangePassword implements Screen {
     @Override
     public  Screen run(SchoolScanner input) {
