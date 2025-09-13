@@ -385,13 +385,16 @@ abstract class SchoolMember implements OperateVehicleList {//学校全体のメ�
 
     public static void ShowVehicleList(List<Vehicle> MembersVehicle) {
         if (MembersVehicle.isEmpty()) {
+            ShowScreen.SeparateScreen(15, " ");
             System.out.println(" | No Data |");
         } else {
-            System.out.println();
+            //System.out.println();
             for (int i = 0; i < MembersVehicle.size(); i++) {
                 MembersVehicle.get(i).showVehicleValue(15);
             }
         }
+        ShowScreen.SeparateScreen(2, " ");
+        ShowScreen.SeparateScreen(48, "_", "\n");
     }
 
     public static void AddMember(SchoolMember member) {//メンバーの追加
@@ -500,6 +503,10 @@ class ShowScreen {
     }
     static void SeparateScreen(int count, String separator) {
         for (int i = 0; i < count; i++) System.out.print(separator);
+    }
+    static void SeparateScreen(int count, String separator, String option) {
+        for (int i = 0; i < count; i++) System.out.print(separator);
+        if (option.equals("\n")) System.out.println();
     }
     
     static void StartScreen() {//最初のスタート画面
@@ -680,11 +687,11 @@ class ShowScreen {
 
     static void LogoutScreen() {
         SeparateScreen();
-        System.out.println("""
+        System.out.print("""
             ログアウトしますか？ You will logout this system.
             Reary?[y/n]
-            :
             """);
+        System.out.print(": ");
     }
 
     static void LoggedoutScreen() {
@@ -1365,9 +1372,29 @@ class Logout implements Screen {
 
 //---------- ---------- メイン ---------- ----------
 public class Way_of_commuting {
+    private static void TestCode() {
+        // 事務員
+        SchoolMember member1 = new OfficeStaff("無名", "平社員");
+        member1.AddVehicle(OperateVehicleAddMinute.VehicleFactory(Vehicle.VehicleKinds.Walk, "Sports", 120, 321));
+        SchoolMember.AddMember(member1); // 直接リストに追加
+
+        // 教員
+        SchoolMember member2 = new Teacher("無名", "会長");
+        member2.AddVehicle(OperateVehicleAddMinute.VehicleFactory(Vehicle.VehicleKinds.Train, "chu-o-", 33, 100));
+        member2.AddVehicle(OperateVehicleAddMinute.VehicleFactory(Vehicle.VehicleKinds.Car, "VMW", 100, 30));
+        SchoolMember.AddMember(member2); // 直接リストに追加
+
+        // 生徒
+        SchoolMember member3 = new Student("名無し", 12345);
+        member3.AddVehicle(OperateVehicleAddMinute.VehicleFactory(Vehicle.VehicleKinds.Bicycle, "Keio", 340, 144));
+        member3.AddVehicle(OperateVehicleAddMinute.VehicleFactory(Vehicle.VehicleKinds.Bike, "TOYOTA", 5, 11));
+        SchoolMember.AddMember(member3); // 直接リストに追加
+    }
+
     private static void MainRun() {
         SchoolScanner input = new SchoolScanner(new Scanner(System.in));
-        Screen ScreenStatus = new Menu();
+        Screen ScreenStatus = new Start();//最初の画面
+        //TestCode();//テスト用メンバー表
         do { 
             ScreenStatus = ScreenStatus.run(input);
         } while (!(ScreenStatus == null));
