@@ -80,7 +80,7 @@ class SchoolScanner implements AutoCloseable {
     }
 
     enum Mode {
-        EditMember, RemoveMember, Logout;
+        EditMember, RemoveMember, AdditionVehicle, Logout;
     }
     public boolean InputYesNo(Mode mode) {//入力の際に[y/n]を求める際の処理
         try {
@@ -92,6 +92,9 @@ class SchoolScanner implements AutoCloseable {
                         break;
                     case RemoveMember :
                         System.out.println("削除しました.");
+                        break;
+                    case AdditionVehicle :
+                        System.out.println("追加を継続します.");
                         break;
                     case Logout :
                         System.out.println("ログアウトしました.");
@@ -105,6 +108,9 @@ class SchoolScanner implements AutoCloseable {
                         break;
                     case RemoveMember :
                         System.out.println("削除を中止しました.");
+                        break;
+                    case AdditionVehicle :
+                        System.out.println("通学手段を確定しました.");
                         break;
                     case Logout :
                         System.out.println("ログアウトを中止しました.");
@@ -195,7 +201,10 @@ class SchoolScanner implements AutoCloseable {
 
     @Override
     public void close() {
-        /* Overrideにより意図的に関数を無効化 */
+        /*
+         * try-with-resorceを使うため、
+         * Overrideにより意図的に関数を無効化
+         */
     }
 
     public void tryClose() {
@@ -235,6 +244,10 @@ abstract class Vehicle {
     private String type;
     private int distance;
     private int minute;
+
+    enum VehicleKinds {
+        Bike, Bicycle, Car, Train, Walk, About;
+    }
 
     Vehicle(String type, int distance, int minute) {
         this.type = type;
@@ -372,13 +385,16 @@ abstract class SchoolMember implements OperateVehicleList {//学校全体のメ�
 
     public static void ShowVehicleList(List<Vehicle> MembersVehicle) {
         if (MembersVehicle.isEmpty()) {
+            ShowScreen.SeparateScreen(15, " ");
             System.out.println(" | No Data |");
         } else {
-            System.out.println();
+            //System.out.println();
             for (int i = 0; i < MembersVehicle.size(); i++) {
                 MembersVehicle.get(i).showVehicleValue(15);
             }
         }
+        ShowScreen.SeparateScreen(2, " ");
+        ShowScreen.SeparateScreen(48, "_", "\n");
     }
 
     public static void AddMember(SchoolMember member) {//メンバーの追加
@@ -394,7 +410,6 @@ abstract class SchoolMember implements OperateVehicleList {//学校全体のメ�
     public int getNumber() { return this.number; }
 
     abstract void showValue(int index);
-
 }
 
 //---------- ---------- 学校関係者 ---------- ----------
@@ -488,6 +503,10 @@ class ShowScreen {
     }
     static void SeparateScreen(int count, String separator) {
         for (int i = 0; i < count; i++) System.out.print(separator);
+    }
+    static void SeparateScreen(int count, String separator, String option) {
+        for (int i = 0; i < count; i++) System.out.print(separator);
+        if (option.equals("\n")) System.out.println();
     }
     
     static void StartScreen() {//最初のスタート画面
@@ -595,6 +614,43 @@ class ShowScreen {
                 """);
     }
 
+    static void OperateVehicleAddWhitchScreen() {
+        SeparateScreen();
+        System.out.println("""
+                通学手段はどうしますか？
+
+                1: バイク
+                2: 自転車
+                3: 車
+                4: 電車
+                5: 徒歩
+                6: その他
+                7: 通学手段を設定しない
+                """);
+    }
+
+    static void OperateVehicleAddTypeShow() {
+        SeparateScreen();
+        System.out.println("タイプを入力してください.");
+    }
+
+    static void OperateVehicleAddDistanceShow() {
+        SeparateScreen();
+        System.out.println("通学距離を入力してください.");
+    }
+
+    static void OperateVehicleAddMinuteShow() {
+        SeparateScreen();
+        System.out.println("通学時間を入力してください.");
+    }
+
+    static void OperateVehicleAddConfirmation() {
+        SeparateScreen();
+        System.out.println("""
+                通学手段を追加しますか？ [y/n]
+                """);
+    }
+
     static void OperateMemberRemoveScreen() {
         SeparateScreen();
         System.out.println("""
@@ -631,11 +687,11 @@ class ShowScreen {
 
     static void LogoutScreen() {
         SeparateScreen();
-        System.out.println("""
+        System.out.print("""
             ログアウトしますか？ You will logout this system.
             Reary?[y/n]
-            :
             """);
+        System.out.print(": ");
     }
 
     static void LoggedoutScreen() {
@@ -859,17 +915,21 @@ class OperateMemberAddPositionOrNumber implements Screen {
                     ShowScreen.OperateMemberAddPositionScreen();
                     String position = input.InputLine();
                     member = MemberFactory(kinds, name, position);
-                    SchoolMember.AddMember(member);
-                    return new OperateMemberAdd();
+                    //SchoolMember.AddMember(member);//直す
+                    //return new OperateMemberAdd();//直す
+                    System.out.println("Member value: "+member);
+                    return new OperateVehicleAddWhitch(member);
                 case Student:
                     ShowScreen.OperateMemberAddNumberScreen();
                     int number = input.InputFigure();
                     if (number >= 0) {
                         member = MemberFactory(kinds, name, number);
-                        SchoolMember.AddMember(member);
-                        return new OperateMemberAdd();//次直す
+                        //SchoolMember.AddMember(member);//直す
+                        //return new OperateMemberAdd();//次直す
+                        System.out.println("Member value: "+member);
+                        return new OperateVehicleAddWhitch(member);
                     } else {
-                        return new OperateMemberAddPositionOrNumber(kinds, name);//再度繰り返す
+                        return this;//new OperateMemberAddPositionOrNumber(kinds, name);//再度繰り返す
                     }
                 default:
                     ShowScreen.Error();
@@ -882,17 +942,19 @@ class OperateMemberAddPositionOrNumber implements Screen {
                     ShowScreen.OperateMemberAddPositionScreen();
                     String position = input.InputLine();
                     member = MemberFactory(kinds, name, position);
-                    SchoolMember.setMember(index, member);
-                    return new OperateMemberAdd();
+                    //SchoolMember.setMember(index, member);//直す
+                    //return new OperateMemberAdd();//直す
+                    return new OperateVehicleAddWhitch(index);//memberにするかも
                 case Student:
                     ShowScreen.OperateMemberAddNumberScreen();
                     int number = input.InputFigure();
                     if (number >= 0) {
                         member = MemberFactory(kinds, name, number);
-                        SchoolMember.setMember(index, member);
-                        return new OperateMemberAdd();//次直す
+                        //SchoolMember.setMember(index, member);//直す
+                        //return new OperateMemberAdd();//次直す
+                        return new OperateVehicleAddWhitch(index);//memberにするかも
                     } else {
-                        return new OperateMemberAddPositionOrNumber(kinds, name);//再度繰り返す
+                        return this;//new OperateMemberAddPositionOrNumber(kinds, name);//再度繰り返す
                     }
                 default:
                     ShowScreen.Error();
@@ -912,9 +974,9 @@ class OperateMemberAddPositionOrNumber implements Screen {
         }
     }
     public static SchoolMember MemberFactory(SchoolMember.Member kinds, String name, int number) {//新規用
-        return new Student(name, number);
+        return new Student(name, number);//kinds = SchoolMember.Member.Student;
     }
-
+    /*
     public static SchoolMember MemberFactory(int index, SchoolMember.Member kinds, String name, String position) {//編集用
         switch (kinds) {
             case OfficeStaff:
@@ -928,6 +990,7 @@ class OperateMemberAddPositionOrNumber implements Screen {
     public static SchoolMember MemberFactory(int index, SchoolMember.Member kinds, String name, int number) {//編集用
         return new Student(name, number);
     }
+    */
 }
 
 //---------- ---------- メンバー編集処理 ---------- ----------
@@ -953,7 +1016,7 @@ class OperateMemberEditSelect implements Screen {//Removeの際と同じよう�
     }
 }
 
-class OperateMemberEditConfirmation implements Screen {
+class OperateMemberEditConfirmation implements Screen {//メンバーの編集許可処理
     int index;
     OperateMemberEditConfirmation(int index) {
         this.index = index;
@@ -966,6 +1029,241 @@ class OperateMemberEditConfirmation implements Screen {
             return new OperateMemberAddWho(index);
         } else {
             return new OperateMemberEditSelect();
+        }
+    }
+}
+
+//---------- ---------- 通学手段追加処理 ---------- ----------
+class OperateVehicle implements Screen {
+    @Override
+    public Screen run(SchoolScanner input) {
+        return null;
+    }
+}
+
+class OperateVehicleAddWhitch implements Screen {//通学手段を選択
+    int index = -1;
+    SchoolMember member;
+    OperateVehicleAddWhitch(SchoolMember member) {
+        this.member = member;
+    }
+    OperateVehicleAddWhitch(int index) {
+        this.index = index;
+    }
+
+    @Override
+    public Screen run(SchoolScanner input) {
+        ShowScreen.OperateVehicleAddWhitchScreen();
+        SchoolScanner.SelectNumber inputResult = input.InputSelectNumber(1, 7);
+        if (index == -1) {//新規用
+            switch (inputResult) {
+                case Zero:
+                    return this;
+                case One:
+                    return new OperateVehicleAddType(member, Vehicle.VehicleKinds.Bike);
+                case Two:
+                    return new OperateVehicleAddType(member, Vehicle.VehicleKinds.Bicycle);
+                case Three:
+                    return new OperateVehicleAddType(member, Vehicle.VehicleKinds.Car);
+                case Four:
+                    return new OperateVehicleAddType(member, Vehicle.VehicleKinds.Train);
+                case Five:
+                    return new OperateVehicleAddType(member, Vehicle.VehicleKinds.Walk);
+                case Six:
+                    return new OperateVehicleAddType(member, Vehicle.VehicleKinds.About);
+                case Seven:
+                    SchoolMember.AddMember(member);
+                    return new OperateMember();
+                default:
+                    return new OperateMember();
+            }
+        } else {//編集用
+            switch (inputResult) {
+                case Zero:
+                    return this;
+                case One:
+                    return new OperateVehicleAddType(index, Vehicle.VehicleKinds.Bike);
+                case Two:
+                    return new OperateVehicleAddType(index, Vehicle.VehicleKinds.Bicycle);
+                case Three:
+                    return new OperateVehicleAddType(index, Vehicle.VehicleKinds.Car);
+                case Four:
+                    return new OperateVehicleAddType(index, Vehicle.VehicleKinds.Train);
+                case Five:
+                    return new OperateVehicleAddType(index, Vehicle.VehicleKinds.Walk);
+                case Six:
+                    return new OperateVehicleAddType(index, Vehicle.VehicleKinds.About);
+                case Seven:
+                    return new OperateMember();
+                default:
+                    return new OperateMember();
+            }
+        }
+        
+    }
+}
+
+class OperateVehicleAddType implements Screen {
+    int index = -1;
+    SchoolMember member;
+    Vehicle.VehicleKinds kinds;
+    OperateVehicleAddType(SchoolMember member, Vehicle.VehicleKinds kinds) {
+        this.member = member;
+        this.kinds = kinds;
+    }
+    OperateVehicleAddType(int index, Vehicle.VehicleKinds kinds) {
+        this.index = index;
+        this.kinds = kinds;
+    }
+
+    @Override
+    public Screen run(SchoolScanner input) {
+        ShowScreen.OperateVehicleAddTypeShow();
+        String type = input.InputLine();
+        if (index == -1) {//新規の場合
+            if (type == null) {
+                return this;
+            } else {
+                return new OperateVehicleAddDistance(member, kinds, type);
+            }
+        } else {//編集の場合
+            if (type == null) {
+                return this;
+            } else {
+                return new OperateVehicleAddDistance(index, kinds, type);
+            }
+        }
+    }
+}
+
+class OperateVehicleAddDistance implements Screen {
+    int index = -1;
+    SchoolMember member;
+    Vehicle.VehicleKinds kinds;
+    String type;
+    OperateVehicleAddDistance(SchoolMember member, Vehicle.VehicleKinds kinds, String type) {
+        this.member = member;
+        this.kinds = kinds;
+        this.type = type;
+    }
+    OperateVehicleAddDistance(int index, Vehicle.VehicleKinds kinds, String type) {
+        this.index = index;
+        this.kinds = kinds;
+        this.type = type;
+    }
+
+    @Override
+    public Screen run(SchoolScanner input) {
+        ShowScreen.OperateVehicleAddDistanceShow();
+        int distance = input.InputFigure();
+        if (index == -1) {//新規の場合
+            if (distance >= 0) {
+                return new OperateVehicleAddMinute(member, kinds, type, distance);
+            } else {
+                return this;
+            }
+        } else {//編集の場合
+            if (distance >= 0) {
+                return new OperateVehicleAddMinute(index, kinds, type, distance);
+            } else {
+                return this;
+            }
+        }
+    }
+}
+
+class OperateVehicleAddMinute implements Screen {
+    int index = -1;
+    SchoolMember member;
+    Vehicle.VehicleKinds kinds;
+    String type;
+    int distance;
+    OperateVehicleAddMinute(SchoolMember member, Vehicle.VehicleKinds kinds, String type, int distance) {
+        this.member = member;
+        this.kinds = kinds;
+        this.type = type;
+        this.distance = distance;
+    }
+    OperateVehicleAddMinute(int index, Vehicle.VehicleKinds kinds, String type, int distance) {
+        this.index = index;
+        this.kinds = kinds;
+        this.type = type;
+        this.distance = distance;
+    }
+    
+    @Override
+    public Screen run(SchoolScanner input) {//個々の処理を次回実装する。
+        Vehicle vehicle;
+        ShowScreen.OperateVehicleAddMinuteShow();
+        int minute = input.InputFigure();
+        if (index == -1) {//新規の場合
+            if (minute >= 0) {
+                vehicle = VehicleFactory(kinds, type, distance, minute);
+                member.AddVehicle(vehicle);
+                System.out.println("エラー来るぞ！！！！");
+                return new OperateVehicleAddConfirmation(member);
+            } else {
+                return this;
+            }
+        } else {//編集の場合
+            if (minute >= 0) {
+                vehicle = VehicleFactory(kinds, type, distance, minute);
+                SchoolMember.getMember(index).AddVehicle(vehicle);
+                return new OperateVehicleAddConfirmation(index);
+            } else {
+                return this;
+            }
+        }
+    }
+
+    public static Vehicle VehicleFactory(Vehicle.VehicleKinds kinds, String type, int distance, int minute) {
+        switch (kinds) {
+            case Bike:
+                return new Bike(type, distance, minute);
+            case Bicycle:
+                return new Bicycle(type, distance, minute);
+            case Car:
+                return new Car(type, distance, minute);
+            case Train:
+                return new Train(type, distance, minute);
+            case Walk:
+                return new Walk(type, distance, minute);
+            case About:
+                return new About(type, distance, minute);
+            default:
+                return null;
+        }
+    }
+}
+
+class OperateVehicleAddConfirmation implements Screen {//通学手段をさらに追加するか聞く
+    SchoolMember member;
+    int index = -1;
+    OperateVehicleAddConfirmation(SchoolMember member) {
+        this.member = member;
+    }
+    OperateVehicleAddConfirmation(int index) {
+        this.index = index;
+    }
+    
+    @Override
+    public Screen run(SchoolScanner input) {
+        ShowScreen.OperateVehicleAddConfirmation();
+        boolean VehicleAdditionConfirmation = input.InputYesNo(SchoolScanner.Mode.AdditionVehicle);
+        if (VehicleAdditionConfirmation) {//通学手段を再度追加
+            if (index == -1) {//新規用
+                return new OperateVehicleAddWhitch(member);
+            } else {//編集用
+                return new OperateVehicleAddWhitch(index);
+            }
+        } else {//通学手段を確定
+            if (index == -1) {//新規用
+                SchoolMember.AddMember(member);
+                return new OperateMemberAdd();
+            } else {//編集用
+                //SchoolMember.setMember(index, member);
+                return new OperateMemberAdd();
+            }
         }
     }
 }
@@ -1074,9 +1372,29 @@ class Logout implements Screen {
 
 //---------- ---------- メイン ---------- ----------
 public class Way_of_commuting {
+    private static void TestCode() {
+        // 事務員
+        SchoolMember member1 = new OfficeStaff("無名", "平社員");
+        member1.AddVehicle(OperateVehicleAddMinute.VehicleFactory(Vehicle.VehicleKinds.Walk, "Sports", 120, 321));
+        SchoolMember.AddMember(member1); // 直接リストに追加
+
+        // 教員
+        SchoolMember member2 = new Teacher("無名", "会長");
+        member2.AddVehicle(OperateVehicleAddMinute.VehicleFactory(Vehicle.VehicleKinds.Train, "chu-o-", 33, 100));
+        member2.AddVehicle(OperateVehicleAddMinute.VehicleFactory(Vehicle.VehicleKinds.Car, "VMW", 100, 30));
+        SchoolMember.AddMember(member2); // 直接リストに追加
+
+        // 生徒
+        SchoolMember member3 = new Student("名無し", 12345);
+        member3.AddVehicle(OperateVehicleAddMinute.VehicleFactory(Vehicle.VehicleKinds.Bicycle, "Keio", 340, 144));
+        member3.AddVehicle(OperateVehicleAddMinute.VehicleFactory(Vehicle.VehicleKinds.Bike, "TOYOTA", 5, 11));
+        SchoolMember.AddMember(member3); // 直接リストに追加
+    }
+
     private static void MainRun() {
         SchoolScanner input = new SchoolScanner(new Scanner(System.in));
-        Screen ScreenStatus = new Menu();
+        Screen ScreenStatus = new Start();//最初の画面
+        //TestCode();//テスト用メンバー表
         do { 
             ScreenStatus = ScreenStatus.run(input);
         } while (!(ScreenStatus == null));
