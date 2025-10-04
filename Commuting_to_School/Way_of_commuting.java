@@ -1,5 +1,6 @@
 package Commuting_to_School;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.List;
@@ -48,8 +49,8 @@ class SchoolScanner implements AutoCloseable {
     
     private Scanner scanner;
     
-    SchoolScanner(Scanner scanner) {
-        this.scanner = scanner;
+    SchoolScanner() {
+        this.scanner = new Scanner(System.in, Charset.forName("Shift_JIS"));
     }
 
     public JudgeSelect InputPassword() {//パスワード入力処理
@@ -1392,7 +1393,8 @@ public class Way_of_commuting {
     }
 
     private static void MainRun() {
-        SchoolScanner input = new SchoolScanner(new Scanner(System.in));
+        //SchoolScanner input = new SchoolScanner(new Scanner(System.in));
+        SchoolScanner input = new SchoolScanner();
         Screen ScreenStatus = new Start();//最初の画面
         //TestCode();//テスト用メンバー表
         do { 
